@@ -19,7 +19,7 @@ if __name__ == '__main__':
     from os.path import *
     usage = "Usage: video2png <videopath> <outputdir>"
     parser = argparse.ArgumentParser(description='Convert video to png')
-    parser.add_argument('--start-sec', dest='startsec', type=int, const=0, nargs='?', 
+    parser.add_argument('--start-sec', dest='startsec', type=int, default=0, nargs='?', 
             help='specify path for the image file')
     parser.add_argument('--num-frame', dest='numframe', type=int, default=1, nargs='?', 
             help='specify path for the image file')

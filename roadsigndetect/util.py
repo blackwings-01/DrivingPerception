@@ -1,0 +1,64 @@
+import argparse
+import cv2
+import six
+import numpy as np
+import matplotlib
+from matplotlib import pyplot as plt
+
+colormap = {} # rgb value from 0 to 1
+for name, hex_ in six.iteritems(matplotlib.colors.cnames):
+    colormap[name] = matplotlib.colors.hex2color(hex_)
+
+# Add the single letter colors.
+for name, rgb in six.iteritems(matplotlib.colors.ColorConverter.colors):
+    colormap[name] = rgb
+
+def rgb(name):
+    return [min(c,255) for c in np.floor(np.asarray(colormap[name]) * 256).astype(int)]
+
+def bgr(name):
+    [r,g,b] = rgb(name)
+    return [b,g,r]
+
+def tic():
+    import time
+    global startTime_for_tictoc
+    startTime_for_tictoc = time.time()
+
+def toc():
+    import time
+    if 'startTime_for_tictoc' in globals():
+        print "Elapsed time is " + str(time.time() - startTime_for_tictoc) + " seconds."
+    else:
+        print "Toc: start time not set"
+
+def drawLabel(img, label, coord, **options):
+    fontface = cv2.FONT_HERSHEY_SIMPLEX;
+    scale = 0.4;
+    thickness = 1;
+    fontcolor = bgr('k')
+    bgdcolor = bgr('w')
+    alpha = 0.5
+    if 'fontface' in options:
+        fontFace = options['fontface']
+    if 'scale' in options:
+        scale = options['scale']
+    if 'thickness' in options:
+        thickness = options['thickness']
+    if 'fontcolor' in options:
+        fontcolor = options['fontcolor']
+    if 'bgdcolor' in options:
+        bdgcolor = options['bdgcolor']
+
+    textSize, baseline= cv2.getTextSize(text=label, fontFace=fontface, fontScale=scale, thickness=thickness);
+    blv = coord
+    trv = tuple(np.int32(coord)+(np.int32(textSize)+np.array([2,2]))*np.array([1, -1]))
+    overlay = img.copy()
+    overlay = cv2.rectangle(img=overlay, pt1=blv, pt2=trv, color=bgdcolor, 
+            thickness=cv2.FILLED);
+    img = cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0)
+    blv = tuple(np.array(blv) + np.array([2,-2]))
+    img = cv2.putText(img=img, text=label, org=blv, fontFace=fontface, 
+            fontScale=scale, color=fontcolor, thickness=thickness,
+            lineType=8);
+    return img

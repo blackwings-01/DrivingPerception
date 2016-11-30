@@ -16,18 +16,34 @@ def main():
 
     global img
     img = cv2.imread(opts.filepath, cv2.IMREAD_COLOR)
-    # cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-    # cv2.imshow('image',img)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+
+    # contour detection
+    # img = cv2.blur(img,(3,3));
+    # gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    # ret,thresh = cv2.threshold(gray,127,255,0)
+    # image, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    # lcontours = []
+    # for c in contours:
+        # peri = cv2.arcLength(c, True)
+        # if peri>50 and peri < 200:
+            # lcontours.append(c)
+        # approx = cv2.approxPolyDP(c, 0.04 * peri, True)
+
+    # plt.ion()
+    # for i, c in enumerate(lcontours):
+        # img = cv2.drawContours(img, lcontours, contourIdx=i, color=(0,255,0), thickness=1)
+        # plt.figure()
+        # plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        # _ = raw_input("Press any key to continue")
+        # plt.show()
+        # plt.close()
+    # return
 
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     edges = cv2.Canny(image=gray,threshold1=50,threshold2=200,apertureSize=3)
     plt.imshow(edges, cmap=plt.cm.binary)
     plt.show()
-    # cv2.imshow('image', edges)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    return
 
     minLineLength = 30
     maxLineGap = 5
@@ -38,8 +54,8 @@ def main():
     for line in lines:
         x1,y1,x2,y2 = line[0]
         img = cv2.line(img,(x1,y1),(x2,y2),(0,255,0),2)
-    # cv2.imwrite('houghlines5.jpg',img)
-    plt.imshow(img)
+    plt.figure()
+    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     plt.show()
 
 if __name__ == "__main__":

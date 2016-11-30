@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 from util import *
 from path import *
 import csv
-# import multiprocessing
+# import multiprocessing # bug with opencv 3 that hangs on multiprocess
 # from multiprocessing import Pool
 from multiprocessing.pool import ThreadPool
 from functools import partial

@@ -5,11 +5,11 @@ import cv2
 
 # Convert video to png
 
-if '3.1.0' in cv2.__version__:
+if iscv3(): 
     CAP_PROP_FRAME_COUNT = cv2.CAP_PROP_FRAME_COUNT 
     CAP_PROP_FPS = cv2.CAP_PROP_FPS
     CAP_PROP_POS_FRAMES = cv2.CAP_PROP_POS_FRAMES
-else:
+elif iscv2():
     CAP_PROP_FRAME_COUNT = cv2.cv.CV_CAP_PROP_FRAME_COUNT 
     CAP_PROP_FPS = cv2.cv.CV_CAP_PROP_FPS
     CAP_PROP_POS_FRAMES = cv2.cv.CV_CAP_PROP_POS_FRAMES

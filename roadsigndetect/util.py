@@ -62,3 +62,8 @@ def drawLabel(img, label, coord, **options):
             fontScale=scale, color=fontcolor, thickness=thickness,
             lineType=8);
     return img
+
+def iscv2():
+	return cv2.__version__.startswith('2.')
+def iscv3():
+	return cv2.__version__.startswith('3.')

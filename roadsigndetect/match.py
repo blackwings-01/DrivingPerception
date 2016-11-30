@@ -51,7 +51,10 @@ def match(img1, img2, **options):
                        )
 
     # Initiate SIFT detector
-    sift = cv2.xfeatures2d.SIFT_create()
+    if iscv2():
+        sift = cv2.SIFT()
+    elif iscv3():
+        sift = cv2.xfeatures2d.SIFT_create()
     
     # find the keypoints and descriptors with SIFT
     kp1, des1 = sift.detectAndCompute(img1,None)
@@ -83,16 +86,20 @@ def match(img1, img2, **options):
 
         if M is not None:
             # draw box around matched object
+            if iscv3():
+                lineType = cv2.LINE_AA
+            elif iscv2():
+                lineType = cv2.CV_AA
             h,w,_ = img1.shape
             cnrs = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0]]).reshape(-1,1,2)
             tcnrs = cv2.perspectiveTransform(cnrs,M)
             tcnrs = np.int32(tcnrs)
             img2 = cv2.polylines(img=img2, pts=[tcnrs], isClosed=True, color=bgr('b'),
-                    thickness=3, lineType=cv2.LINE_AA)
+                    thickness=3, lineType=lineType)
             ctr = np.float32([[w/2, h/2]]).reshape(-1,1,2)
             tctr = tuple(np.int32(cv2.perspectiveTransform(ctr,M).flatten()))
             img2 = cv2.circle(img=img2, center=tctr, radius=2, color=bgr('r'), thickness=-1,
-                    lineType=cv2.LINE_AA)
+                    lineType=lineType)
             matchdict['cnrs'] = tcnrs.reshape(-1,2)
             matchdict['ctr'] = tctr
 
@@ -191,6 +198,7 @@ def matchall(path, **options):
         numthread = options['numthread']
 
     files = [f for f in listdir(path) if isfile(join(path, f)) and f.endswith('.png')]
+    files = sorted(files)
 
     matches = {}
 
@@ -210,6 +218,9 @@ def matchall(path, **options):
     pool = ThreadPool(numthread)
     partialMatchFrame = partial(matchFrame, matches=matches, path=path, blurSize=blurSize,
             options=options)
+    # Test one 1 frame
+    # partialMatchFrame(inputs[2])
+    # return
     tic()
     results = pool.map(partialMatchFrame, inputs, 1)
     pool.close()
@@ -235,15 +246,17 @@ def main():
             help='Ratio test percentage')
     parser.add_argument('--minMatchCnt', dest='minMatchCnt', nargs='?', default=5, type=int,
             help='Minimum match count')
+    parser.add_argument('--numthread', dest='numthread', nargs='?', default=8, type=int,
+            help='Number of thread to match roadsigns')
+    parser.add_argument('--path', dest='path', action='store',
+            default='{0}/2011_09_26_1/data/'.format(KITTI_PATH))
     (opts, args) = parser.parse_known_args()
 
     if (opts.mode == 'matchall'):
-        options = dict(startframe=25, numframe=5, ratioTestPct=0.7, minMatchCnt=5)
-        # options = dict(startframe=opts.startframe, numframe=opts.numframe,
-                # ratioTestPct=opts.ratioTestPct, minMatchCnt=opts.minMatchCnt)
-        matchall(
-                '/Users/Yaqi/ee368/kitti/2011_09_26_1/2011_09_26_drive_0059_sync/image_03/data/',
-                **options)
+        options = dict(startframe=opts.startframe, numframe=opts.numframe,
+                ratioTestPct=opts.ratioTestPct, minMatchCnt=opts.minMatchCnt,
+                numthread=opts.numthread)
+        matchall(opts.path, **options)
     elif (opts.mode == 'matchone'):
         # img1 = cv2.imread(signs['stop_sign'])
         # img2 = cv2.imread('{0}{1}'.format(DATA_PATH,
@@ -252,7 +265,8 @@ def main():
         # img1 = cv2.imread(signs['parking'])
         img1 = cv2.GaussianBlur(img1,(5,5),0)
         img2 = cv2.imread(
-            '/Users/Yaqi/ee368/kitti/2011_09_26_1/2011_09_26_drive_0059_sync/image_03/data/0000000026.png'
+            KITTI_PATH + 
+            '/2011_09_26_1/data/0000000026.png'
             )
         img3 = match(img1, img2, draw=True, drawKeyPoint=False, ratioTestPct=0.75, minMatchCnt=5)
         plt.figure(dpi=140)

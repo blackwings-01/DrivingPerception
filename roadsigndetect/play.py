@@ -50,6 +50,7 @@ def main():
     (opts, args) = parser.parse_known_args()
 
     files = [f for f in listdir(opts.path) if isfile(join(opts.path, f)) and f.endswith('.png')]
+    files = sorted(files)
 
     if opts.mode == 'loadmatch':
         matches = mcread(opts.path)

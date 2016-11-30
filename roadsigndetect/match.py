@@ -242,7 +242,7 @@ def main():
     parser.add_argument('--num-frame', dest='numframe', nargs='?', default=-1, type=int,
             help='Number of frame to play, -1 for all frames')
     parser.add_argument('--mode', dest='mode', action='store', default='matchall')
-    parser.add_argument('--ratioTestPct', dest='ratioTestPct', nargs='?', default=0.7, type=float,
+    parser.add_argument('--ratioTestPct', dest='ratioTestPct', nargs='?', default=0.75, type=float,
             help='Ratio test percentage')
     parser.add_argument('--minMatchCnt', dest='minMatchCnt', nargs='?', default=5, type=int,
             help='Minimum match count')

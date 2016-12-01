@@ -9,7 +9,7 @@ def main():
     usage = "Usage: detrect [options --file]"
     parser = argparse.ArgumentParser(description='Detect rectangles in an image')
     parser.add_argument('--file', dest='filepath', action='store', 
-            default='../kitti/2011_09_26/2011_09_26_drive_0048_sync/image_03/data/0000000000.png',
+            default='../kitti/2011_09_26_1/data/0000000000.png',
             help='specify path for the image file')
 
     (opts, args) = parser.parse_known_args()

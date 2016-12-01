@@ -7,23 +7,23 @@ from matplotlib import pyplot as plt
 from path import *
 from match import *
 from util import * 
+from speeddet import *
+from lightdet import *
 
 def loadMatch(frame, fn, matches):
     if fn not in matches:
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         return frame
     for sn in matches[fn]:
         mc = matches[fn][sn]
         if (len(mc)==0):
             continue
-        cnrs = mc['cnrs']
-        frame = cv2.polylines(img=frame, pts=[cnrs], isClosed=True, color=bgr('b'),
-                thickness=3, lineType=cv2.LINE_AA)
+        # cnrs = mc['cnrs']
+        # frame = cv2.polylines(img=frame, pts=[cnrs], isClosed=True, color=bgr('b'),
+                # thickness=3, lineType=cv2.LINE_AA)
         ctr = mc['ctr'] 
         frame = cv2.circle(img=frame, center=ctr, radius=2, color=bgr('r'), thickness=-1,
                     lineType=cv2.LINE_AA)
         frame = drawLabel(img=frame, label=sn, coord=ctr)
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     return frame
 
 def roadSignMatching(frame):
@@ -33,10 +33,10 @@ def roadSignMatching(frame):
     return img
 
 def main():
-    usage = "Usage: play [options --dir]"
+    usage = "Usage: play [options --path]"
     parser = argparse.ArgumentParser(description='Visualize a sequence of images as video')
-    parser.add_argument('--dir', dest='path', action='store', 
-            default='{0}2011_09_26-3/2011_09_26_drive_0084_sync/image_03/data'.format(KITTI_PATH),
+    parser.add_argument('--path', dest='path', action='store', 
+            default='{0}2011_09_26-3/data'.format(KITTI_PATH),
             help='Specify path for the image files')
     parser.add_argument('--delay', dest='delay', nargs='?', default=0.05, type=float,
             help='Amount of delay between images')
@@ -52,10 +52,11 @@ def main():
     files = [f for f in listdir(opts.path) if isfile(join(opts.path, f)) and f.endswith('.png')]
     files = sorted(files)
 
-    if opts.mode == 'loadmatch':
+    if opts.mode in ['loadmatch', 'all']:
         matches = mcread(opts.path)
 
     img = None
+    org = None
     plt.figure(dpi=140)
     for i, impath in enumerate(files): 
         fn, ext = splitext(impath)
@@ -69,17 +70,34 @@ def main():
         root, ext = splitext(impath)
         im = cv2.imread(join(opts.path, impath), cv2.IMREAD_COLOR)
 
-        if opts.mode == 'original':
-            im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-        elif opts.mode == 'roadsign':
+        if opts.mode == 'roadsign':
             im = roadSignMatching(im) 
         elif opts.mode == 'loadmatch':
             im = loadMatch(im, fn, matches) 
+        elif opts.mode == 'detlight':
+            im,org = detlight(im, mode='compare') 
+        elif opts.mode == 'all':
+            im,_ = detlight(im, mode='label') 
+            im = loadMatch(im, fn, matches) 
+
+        im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+        if org is not None:
+            org = cv2.cvtColor(org, cv2.COLOR_BGR2RGB)
 
         if img is None:
-            img = plt.imshow(im)
+            if org is not None:
+                plt.subplot(2,1,1)
+                imgo = plt.imshow(org)
+                plt.subplot(2,1,2)
+                img = plt.imshow(im)
+            else:
+                img = plt.imshow(im)
         else:
-            img.set_data(im)
+            if org is not None:
+                imgo.set_data(org)
+                img.set_data(im)
+            else:
+                img.set_data(im)
         plt.pause(opts.delay)
         plt.draw()
 

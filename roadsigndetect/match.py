@@ -110,7 +110,6 @@ def match(img1, img2, **options):
     img3 = None
     if draw:
         img3 = cv2.drawMatches(img1,kp1,img2,kp2,good,None,**draw_params)
-        img3 = cv2.cvtColor(img3, cv2.COLOR_BGR2RGB)
         return img3 
     else:
         return matchdict
@@ -269,6 +268,7 @@ def main():
             '/2011_09_26_1/data/0000000026.png'
             )
         img3 = match(img1, img2, draw=True, drawKeyPoint=False, ratioTestPct=0.75, minMatchCnt=5)
+        img3 = cv2.cvtColor(img3, cv2.COLOR_BGR2RGB)
         plt.figure(dpi=140)
         plt.imshow(img3)
         plt.show()

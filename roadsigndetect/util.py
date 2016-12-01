@@ -32,13 +32,14 @@ def toc():
     else:
         print "Toc: start time not set"
 
+# coord is lower left corner of text
 def drawLabel(img, label, coord, **options):
     fontface = cv2.FONT_HERSHEY_SIMPLEX;
-    scale = 0.4;
-    thickness = 1;
-    fontcolor = bgr('k')
+    scale = 0.6;
+    thickness = 2;
+    fontcolor = bgr('blue')
     bgdcolor = bgr('w')
-    alpha = 0.5
+    alpha = 0.7
     if 'fontface' in options:
         fontFace = options['fontface']
     if 'scale' in options:
@@ -46,7 +47,7 @@ def drawLabel(img, label, coord, **options):
     if 'thickness' in options:
         thickness = options['thickness']
     if 'fontcolor' in options:
-        fontcolor = options['fontcolor']
+        fontcolor = bgr(options['fontcolor'])
     if 'bgdcolor' in options:
         bdgcolor = options['bdgcolor']
 

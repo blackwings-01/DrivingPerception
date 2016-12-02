@@ -130,8 +130,8 @@ def loadMatch(frame, org, icmp, fn, matches):
         frame = cv2.circle(img=frame, center=ctr, radius=2, color=bgr('r'), thickness=-1,
                     lineType=cv2.LINE_AA)
         frame = drawLabel(img=frame, label=sn, coord=ctr)
-
-        signs.append(sn)
+        if sn not in signs:
+            signs.append(sn)
 
     text = 'Current Signs: [{0}]'.format(','.join(signs))
     h = icmp.shape[0]

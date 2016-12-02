@@ -1,5 +1,5 @@
 from os import listdir
-from os.path import isfile, join, splitext
+from os.path import isfile, isdir, join, splitext
 import argparse
 import numpy as np
 import cv2
@@ -16,7 +16,7 @@ def roadSignMatching(frame, org):
     img = match(sign, frame, org, draw=True, drawKeyPoint=False, ratioTestPct=0.7, minMatchCnt=5)
     return img
 
-def play(opts):
+def play(opts, flows, labels):
     files = [f for f in listdir(opts.path) if isfile(join(opts.path, f)) and f.endswith('.png')]
     files = sorted(files)
 
@@ -24,8 +24,6 @@ def play(opts):
         matches = mcread(opts.path)
     if opts.mode in ['trainspeed', 'all']:
         headers = loadHeader('{0}/../oxts'.format(opts.path))
-        labels = dict(vf=[], wf=[])
-        flows = []
 
     img = None
     icmp = None
@@ -92,9 +90,6 @@ def play(opts):
         plt.pause(opts.delay)
         plt.draw()
 
-    if (opts.mode=='trainspeed'):
-        trainSpeed(flows, labels, opts.rseg, opts.cseg)
-
 def main():
     usage = "Usage: play [options --path]"
     parser = argparse.ArgumentParser(description='Visualize a sequence of images as video')
@@ -115,7 +110,19 @@ def main():
     parser.add_argument('--cseg', dest='cseg', nargs='?', default=4, type=int,
             help='Number of horizontal segmentation in computing averaged flow')
     (opts, args) = parser.parse_known_args()
-    play(opts)
+
+    if (opts.mode=='trainspeed'):
+        flows = []
+        labels = []
+        dirs = [join(KITTI_PATH, d) for d in listdir(KITTI_PATH) if isdir(join(KITTI_PATH, d))]
+        for vdir in dirs:
+            flows.append([])
+            labels.append(dict(vf=[], wf=[]))
+            opts.path = '{0}/data/'.format(vdir)
+            play(opts, flows[-1], labels[-1])
+        trainSpeed(flows, labels, opts.rseg, opts.cseg)
+    else:
+        play(opts, [], dict(vf=[], wf=[]))
 
 if __name__ == "__main__":
     main()

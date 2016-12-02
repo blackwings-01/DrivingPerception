@@ -133,12 +133,18 @@ def trainSpeed(flows, labels, rseg, cseg, **options):
 
     numTest = int(round(len(flows)*(1-pctTrain)))
     # Split the data into training/testing sets
-    X_train = flows[:-numTest]
-    X_test = flows[-numTest:]
+    X_train = []
+    X_test = []
+    for fl in flows:
+        X_train += fl[:-numTest]
+        X_test += fl[-numTest:]
     
     # Split the targets into training/testing sets
-    y_train = labels['vf'][:-numTest]
-    y_test = labels['vf'][-numTest:]
+    y_train = []
+    y_test = []
+    for lb in labels:
+        y_train += lb['vf'][:-numTest]
+        y_test += lb['vf'][-numTest:]
     
     # Create linear regression object
     regr = linear_model.LinearRegression(fit_intercept=True)

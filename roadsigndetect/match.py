@@ -21,7 +21,7 @@ for f in listdir(SIGN_PATH):
     if isfile(join(SIGN_PATH, f)) and ext=='.png':
         signs[fn] = join(SIGN_PATH, f)
 
-def match(img1, img2, **options):
+def match(img1, img2, oimg2, **options):
     # defaults
     draw = False 
     matchColor = 'g' 
@@ -58,7 +58,7 @@ def match(img1, img2, **options):
     
     # find the keypoints and descriptors with SIFT
     kp1, des1 = sift.detectAndCompute(img1,None)
-    kp2, des2 = sift.detectAndCompute(img2,None)
+    kp2, des2 = sift.detectAndCompute(oimg2,None)
     
     # FLANN parameters
     FLANN_INDEX_KDTREE = 0
@@ -113,6 +113,33 @@ def match(img1, img2, **options):
         return img3 
     else:
         return matchdict
+
+def loadMatch(frame, org, icmp, fn, matches):
+    if fn not in matches:
+        return frame
+    signs = []
+
+    for sn in matches[fn]:
+        mc = matches[fn][sn]
+        if (len(mc)==0):
+            continue
+        # cnrs = mc['cnrs']
+        # frame = cv2.polylines(img=frame, pts=[cnrs], isClosed=True, color=bgr('b'),
+                # thickness=3, lineType=cv2.LINE_AA)
+        ctr = mc['ctr'] 
+        frame = cv2.circle(img=frame, center=ctr, radius=2, color=bgr('r'), thickness=-1,
+                    lineType=cv2.LINE_AA)
+        frame = drawLabel(img=frame, label=sn, coord=ctr)
+
+        signs.append(sn)
+
+    text = 'Current Signs: [{0}]'.format(','.join(signs))
+    h = icmp.shape[0]
+    coord = (20, h*3/4)
+    fontface = cv2.FONT_HERSHEY_SIMPLEX;
+    icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, 
+        fontScale=0.6, color=bgr('k'), thickness=2, lineType=8);
+    return frame, icmp
 
 def mcencode(mc):
     if len(mc)==0:
@@ -267,7 +294,7 @@ def main():
             KITTI_PATH + 
             '/2011_09_26_1/data/0000000026.png'
             )
-        img3 = match(img1, img2, draw=True, drawKeyPoint=False, ratioTestPct=0.75, minMatchCnt=5)
+        img3 = match(img1, img2, img2.copy(), draw=True, drawKeyPoint=False, ratioTestPct=0.75, minMatchCnt=5)
         img3 = cv2.cvtColor(img3, cv2.COLOR_BGR2RGB)
         plt.figure(dpi=140)
         plt.imshow(img3)

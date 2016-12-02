@@ -15,7 +15,7 @@ import matplotlib.patches as patches
 labels = dict(r='red_light', y='yellow_light', g='green_light')
 fontcolors = dict(r='red', y='chocolate', g='green')
 
-def findLight(lc, cmks, frame, **options):
+def findLight(lc, cmks, dframe, **options):
     # mode='compare'
     mode='label'
     if 'mode' in options:
@@ -56,15 +56,15 @@ def findLight(lc, cmks, frame, **options):
             cond = cond and 'k' in scolors
         if cond:
             if mode=='compare':
-                frame = cv2.drawContours(frame, [cvxhull], contourIdx=-1, color=rgb('g'), thickness=2)
+                dframe = cv2.drawContours(dframe, [cvxhull], contourIdx=-1, color=rgb('g'), thickness=2)
             elif mode=='label':
-                frame = cv2.drawContours(frame, [cvxhull], contourIdx=-1, color=rgb('g'),
+                dframe = cv2.drawContours(dframe, [cvxhull], contourIdx=-1, color=rgb('g'),
                         thickness=1)
                 coord = (maxX + 4, (minY + maxY)/2)
-                frame = drawLabel(frame, labels[lc], coord, fontcolor=fontcolors[lc])  
+                dframe = drawLabel(dframe, labels[lc], coord, fontcolor=fontcolors[lc])  
 
             lightbounds.append(bounds)
-    return frame, lightbounds
+    return dframe, lightbounds
 
 def surroundColors(curmsk, bounds, surbounds, cmks):
     region = getPatch(curmsk, bounds)
@@ -99,7 +99,7 @@ def setPatch(img, bounds, val):
     cp[max(minY, 0):min(maxY, h), max(minX, 0):min(maxX, w)] = val
     return cp
 
-def detlight(frame, **options):
+def detlight(frame, dframe, **options):
     # mode='compare'
     mode='label'
     if 'mode' in options:
@@ -152,9 +152,25 @@ def detlight(frame, **options):
                          + (~setR & ~setG & ~setY & ~setK) * xhw[:,:,i]
                          )
 
-    frame, rbounds = findLight('r', cmks, frame, **options)
-    frame, gbounds = findLight('y', cmks, frame, **options)
-    frame, gbounds = findLight('g', cmks, frame, **options)
+    dframe, rbounds = findLight('r', cmks, dframe, **options)
+    dframe, ybounds = findLight('y', cmks, dframe, **options)
+    dframe, gbounds = findLight('g', cmks, dframe, **options)
+
+    if (mode=='label'):
+        icmp = options['icmp']
+        lights = []
+        if len(rbounds)!=0:
+            lights.append('Red')
+        if len(ybounds)!=0:
+            lights.append('Yellow')
+        if len(gbounds)!=0:
+            lights.append('Green')
+        text = 'Current Lights: [{0}]'.format(','.join(lights))
+        h = icmp.shape[0]
+        coord = (20, h*2/4)
+        fontface = cv2.FONT_HERSHEY_SIMPLEX;
+        icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, 
+            fontScale=0.6, color=bgr('k'), thickness=2, lineType=8);
         
     # circles = cv2.HoughCircles(img, method=cv2.HOUGH_GRADIENT, dp=1, minDist=h/8,
                                 # param1=100,param2=20,minRadius=0,maxRadius=150)
@@ -166,7 +182,10 @@ def detlight(frame, **options):
         # # draw the center of the circle
         # cv2.circle(frame,(i[0],i[1]),2,(0,0,255),3)
 
-    return frame, org
+    if mode=='compare':
+        return dframe, org
+    elif mode=='label':
+        return dframe, icmp 
 
 def main():
     usage = "Usage: match [options --mode]"
@@ -191,7 +210,7 @@ def main():
         print('TODO') 
     elif (opts.mode == 'detectone'):
         img = cv2.imread(opts.file)
-        img,org = detlight(img) 
+        img,org = detlight(img, img.copy()) 
         org = cv2.cvtColor(org, cv2.COLOR_BGR2RGB)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         plt.figure(dpi=140)

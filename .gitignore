@@ -1,6 +1,5 @@
 .DS_Store
 driving/
-kitti/
 *.pyc
 *.swp
 building.jpg

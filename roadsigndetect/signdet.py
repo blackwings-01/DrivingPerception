@@ -195,7 +195,7 @@ def matchFrame(fn, path, matches, blurSize, options):
     for signname in signs:
         sign = cv2.imread(signs[signname])
         sign = cv2.GaussianBlur(sign,blurSize,0)
-        mc = match(sign, frame, **options)
+        mc = match(sign, frame, frame.copy(), **options)
         mcs[signname] = mc
     print('finishing on {0}'.format(fn))
     return mcs

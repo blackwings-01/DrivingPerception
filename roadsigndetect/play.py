@@ -50,7 +50,7 @@ def play(opts, flows, labels):
             im,icmp,_ = detlight(im, org, mode='compare') 
         elif opts.mode == 'flow':
             if porg is not None:
-                im = detflow(im, porg, org, flowmode='avgflow')
+                im = detflow(im, porg, org, flowmode='avgflow', rseg=opts.rseg, cseg=opts.cseg)
         elif opts.mode == 'trainspeed':
             if porg is not None:
                 flow = compFlow(porg, org, rseg=opts.rseg, cseg=opts.cseg)

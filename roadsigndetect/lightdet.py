@@ -15,7 +15,7 @@ import matplotlib.patches as patches
 labels = dict(r='red_light', y='yellow_light', g='green_light')
 fontcolors = dict(r='red', y='chocolate', g='green')
 
-def findLight(lc, cmks, dframe, **options):
+def findLight(lc, cmks, img, **options):
     # mode='compare'
     mode='label'
     if 'mode' in options:
@@ -56,15 +56,16 @@ def findLight(lc, cmks, dframe, **options):
             cond = cond and 'k' in scolors
         if cond:
             if mode=='compare':
-                dframe = cv2.drawContours(dframe, [cvxhull], contourIdx=-1, color=rgb('g'), thickness=2)
+                print('')
+                # img = cv2.drawContours(img, [cvxhull], contourIdx=-1, color=rgb('g'), thickness=2)
             elif mode=='label':
-                dframe = cv2.drawContours(dframe, [cvxhull], contourIdx=-1, color=rgb('g'),
+                img = cv2.drawContours(img, [cvxhull], contourIdx=-1, color=rgb('g'),
                         thickness=1)
                 coord = (maxX + 4, (minY + maxY)/2)
-                dframe = drawLabel(dframe, labels[lc], coord, fontcolor=fontcolors[lc])  
+                img = drawLabel(img, labels[lc], coord, fontcolor=fontcolors[lc])  
 
             lightbounds.append(bounds)
-    return dframe, lightbounds
+    return img, lightbounds
 
 def surroundColors(curmsk, bounds, surbounds, cmks):
     region = getPatch(curmsk, bounds)
@@ -99,16 +100,14 @@ def setPatch(img, bounds, val):
     cp[max(minY, 0):min(maxY, h), max(minX, 0):min(maxX, w)] = val
     return cp
 
-def detlight(frame, dframe, **options):
+def detlight(img, org, **options):
     # mode='compare'
     mode='label'
     if 'mode' in options:
         mode = options['mode']
 
-    org = frame.copy()
-    
-    frame= cv2.GaussianBlur(frame,(5,5),0)
-    h,w,_ = frame.shape
+    frame= cv2.GaussianBlur(org,(5,5),0)
+    h,w,_ = org.shape
 
     xr = np.int32(frame[:,:,2])
     xg = np.int32(frame[:,:,1])
@@ -124,16 +123,16 @@ def detlight(frame, dframe, **options):
     setG = ((xg - xr) >= Tg) & ((xb - xr) >= Tg)
     setK = (xr < Tk) & (xg < Tk) & (xb < Tk)
     
-    xhr = np.zeros(frame.shape, dtype=np.uint8)
+    xhr = np.zeros(org.shape, dtype=np.uint8)
     xhr[:,:,2] = 255 #r
-    xhy = np.zeros(frame.shape, dtype=np.uint8)
+    xhy = np.zeros(org.shape, dtype=np.uint8)
     xhy[:,:,2] = 255 #r
     xhy[:,:,1] = 255 #g
-    xhg = np.zeros(frame.shape, dtype=np.uint8)
+    xhg = np.zeros(org.shape, dtype=np.uint8)
     xhg[:,:,1] = 255 #g
     xhg[:,:,0] = 255 #b
-    xhw = np.ones(frame.shape, dtype=np.uint8) * 255
-    xhk = np.zeros(frame.shape, dtype=np.uint8)
+    xhw = np.ones(org.shape, dtype=np.uint8) * 255
+    xhk = np.zeros(org.shape, dtype=np.uint8)
 
     mkr = np.ones((h,w), dtype=np.uint8) * setR 
     mky = np.ones((h,w), dtype=np.uint8) * setY 
@@ -144,7 +143,7 @@ def detlight(frame, dframe, **options):
 
     if (mode=='compare'):
         for i in range(3):
-            frame[:,:,i] =(
+            img[:,:,i] =(
                            setR * xhr[:,:,i] 
                          + setG * xhg[:,:,i] 
                          + setY * xhy[:,:,i]
@@ -152,9 +151,9 @@ def detlight(frame, dframe, **options):
                          + (~setR & ~setG & ~setY & ~setK) * xhw[:,:,i]
                          )
 
-    dframe, rbounds = findLight('r', cmks, dframe, **options)
-    dframe, ybounds = findLight('y', cmks, dframe, **options)
-    dframe, gbounds = findLight('g', cmks, dframe, **options)
+    img, rbounds = findLight('r', cmks, img, **options)
+    img, ybounds = findLight('y', cmks, img, **options)
+    img, gbounds = findLight('g', cmks, img, **options)
 
     if (mode=='label'):
         icmp = options['icmp']
@@ -183,9 +182,9 @@ def detlight(frame, dframe, **options):
         # cv2.circle(frame,(i[0],i[1]),2,(0,0,255),3)
 
     if mode=='compare':
-        return dframe, org
+        return img, org
     elif mode=='label':
-        return dframe, icmp 
+        return img, icmp 
 
 def main():
     usage = "Usage: match [options --mode]"
@@ -210,7 +209,7 @@ def main():
         print('TODO') 
     elif (opts.mode == 'detectone'):
         img = cv2.imread(opts.file)
-        img,org = detlight(img, img.copy()) 
+        img,org = detlight(img, img.copy(), mode='compare') 
         org = cv2.cvtColor(org, cv2.COLOR_BGR2RGB)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         plt.figure(dpi=140)

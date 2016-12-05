@@ -212,7 +212,7 @@ def matchall(path, **options):
     if 'matchPath' in options:
         matchPath = options['matchPath']
     if 'blurSize' in options:
-        blurSize = options['blurSize']
+        blurSize = (options['blurSize'],options['blurSize'])
     if 'startframe' in options:
         startframe = options['startframe']
     if 'endframe' in options:
@@ -267,9 +267,11 @@ def main():
     parser.add_argument('--num-frame', dest='numframe', nargs='?', default=-1, type=int,
             help='Number of frame to play, -1 for all frames')
     parser.add_argument('--mode', dest='mode', action='store', default='matchall')
-    parser.add_argument('--ratioTestPct', dest='ratioTestPct', nargs='?', default=0.75, type=float,
+    parser.add_argument('--ratioTestPct', dest='ratioTestPct', nargs='?', default=0.8, type=float,
             help='Ratio test percentage')
-    parser.add_argument('--minMatchCnt', dest='minMatchCnt', nargs='?', default=5, type=int,
+    parser.add_argument('--blurSize', dest='blurSize', nargs='?', default=9, type=int,
+            help='blurSize for gaussian blur')
+    parser.add_argument('--minMatchCnt', dest='minMatchCnt', nargs='?', default=4, type=int,
             help='Minimum match count')
     parser.add_argument('--numthread', dest='numthread', nargs='?', default=8, type=int,
             help='Number of thread to match roadsigns')
@@ -280,14 +282,14 @@ def main():
     if (opts.mode == 'matchall'):
         options = dict(startframe=opts.startframe, numframe=opts.numframe,
                 ratioTestPct=opts.ratioTestPct, minMatchCnt=opts.minMatchCnt,
-                numthread=opts.numthread)
+                numthread=opts.numthread, blurSize=opts.blurSize)
         matchall(opts.path, **options)
     elif (opts.mode == 'matchone'):
-        img1 = cv2.imread(signs['give_way'])
-        img1 = cv2.GaussianBlur(img1,(5,5),0)
+        img1 = cv2.imread(signs['pedestrian_crossing_left'])
+        img1 = cv2.GaussianBlur(img1,(9,9),0)
         img2 = cv2.imread(opts.path)
-        img3 = match(img1, img2, img2.copy(), draw=True, drawKeyPoint=True, ratioTestPct=1,
-                minMatchCnt=2)
+        img3 = match(img1, img2, img2.copy(), draw=True, drawKeyPoint=False, ratioTestPct=0.8,
+                minMatchCnt=4)
         img3 = cv2.cvtColor(img3, cv2.COLOR_BGR2RGB)
         plt.figure(dpi=140)
         plt.imshow(img3)

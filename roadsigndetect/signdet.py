@@ -277,6 +277,7 @@ def main():
             help='Number of thread to match roadsigns')
     parser.add_argument('--path', dest='path', action='store',
             default='{0}/2011_09_26-1/data/0000000026.png'.format(KITTI_PATH))
+    parser.add_argument('--sign', dest='sign', action='store', default='no_entry')
     (opts, args) = parser.parse_known_args()
 
     if (opts.mode == 'matchall'):
@@ -285,10 +286,10 @@ def main():
                 numthread=opts.numthread, blurSize=opts.blurSize)
         matchall(opts.path, **options)
     elif (opts.mode == 'matchone'):
-        img1 = cv2.imread(signs['pedestrian_crossing_left'])
-        img1 = cv2.GaussianBlur(img1,(9,9),0)
+        img1 = cv2.imread(signs[opts.sign])
+        img1 = cv2.GaussianBlur(img1,(5,5),0)
         img2 = cv2.imread(opts.path)
-        img3 = match(img1, img2, img2.copy(), draw=True, drawKeyPoint=False, ratioTestPct=0.8,
+        img3 = match(img1, img2, img2.copy(), draw=True, drawKeyPoint=False, ratioTestPct=0.85,
                 minMatchCnt=4)
         img3 = cv2.cvtColor(img3, cv2.COLOR_BGR2RGB)
         plt.figure(dpi=140)

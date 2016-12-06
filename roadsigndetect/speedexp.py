@@ -14,8 +14,8 @@ def foo(opts):
 
 def exp(opts):
     opts['mode'] = 'trainspeed'
-    rsegs = range(1,6,1) 
-    csegs = range(1,10,1) 
+    rsegs = range(1,8,1) 
+    csegs = range(1,24,1) 
     nr = len(rsegs)
     nc = len(csegs)
     rsegs, csegs = np.meshgrid(rsegs, csegs, sparse=False, indexing='ij')

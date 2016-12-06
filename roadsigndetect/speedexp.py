@@ -14,28 +14,29 @@ def foo(opts):
 
 def exp(opts):
     opts['mode'] = 'trainspeed'
-    rsegs = range(1,2,1) 
-    csegs = range(1,2,2) 
+    rsegs = range(1,6,1) 
+    csegs = range(1,10,1) 
     nr = len(rsegs)
     nc = len(csegs)
     rsegs, csegs = np.meshgrid(rsegs, csegs, sparse=False, indexing='ij')
     rsegs = rsegs.astype(np.int32)
-    csegs = rsegs.astype(np.int32)
+    csegs = csegs.astype(np.int32)
     mses = np.empty_like(rsegs, dtype=np.float32)
     vars = np.empty_like(rsegs, dtype=np.float32)
 
     inputs = []
     for i in range(nr):
         for j in range(nc):
-            lopts = opts.copy()
-            lopts['rseg'] = rsegs[i,j]
-            lopts['cseg'] = csegs[i,j]
-            lopts['i'] = i 
-            lopts['j'] = j 
-            inputs.append(lopts)
+            cp = opts.copy()
+            cp['rseg'] = rsegs[i,j]
+            cp['cseg'] = csegs[i,j]
+            cp['i'] = i 
+            cp['j'] = j 
+            inputs.append(cp)
 
     pool = ThreadPool(opts['numthread'])
     tic()
+    # results[0] = trainModel(inputs[0])
     results = pool.map(trainModel, inputs, 1)
     # results = pool.map(foo, inputs, 1)
     pool.close()

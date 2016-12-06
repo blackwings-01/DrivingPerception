@@ -9,6 +9,7 @@ from util import *
 from signdet import *
 from speeddet import *
 from lightdet import *
+import time
 
 def roadSignMatching(frame, org):
     sign = cv2.imread(signs['keep_right'])
@@ -28,7 +29,8 @@ def play(flows, labels, **opts):
     img = None
     icmp = None
     porg = None
-    plt.figure(dpi=140)
+    if (opts['mode'] not in ['trainspeed']):
+      plt.figure(dpi=140)
     for i, impath in enumerate(files): 
         fn, ext = splitext(impath)
         if i<opts['startframe']:

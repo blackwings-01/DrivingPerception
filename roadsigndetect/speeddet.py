@@ -59,7 +59,11 @@ def getflow(prevgray, gray, **options):
     h, w = gray.shape[:2]
     rstride = h / rseg
     cstride = w / cseg
-    flow = cv2.calcOpticalFlowFarneback(prevgray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+    if iscv2():
+      flow = cv2.calcOpticalFlowFarneback(prevgray, gray, 0.5, 3, 15, 3, 5, 1.2, 0)
+    elif iscv3():
+      flow = cv2.calcOpticalFlowFarneback(prevgray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+
     # flow = gray 
     avgflow = np.ndarray((rseg, cseg, 2), dtype=flow.dtype)
     for ir in range(0, rseg):

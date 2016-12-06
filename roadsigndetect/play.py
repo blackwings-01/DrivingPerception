@@ -51,7 +51,7 @@ def play(flows, labels, **opts):
         elif opts['mode'] == 'loadmatch':
             im,_ = loadMatch(im, org, icmp, fn, matches) 
         elif opts['mode'] == 'detlight':
-            im,icmp,_ = detlight(im, org, mode='compare') 
+            im,icmp = detlight(im, org, mode='compare') 
         elif opts['mode'] == 'flow':
             if porg is not None:
                 opts['flowmode'] = 'avgflow'
@@ -61,6 +61,10 @@ def play(flows, labels, **opts):
                 flow = compFlow(porg, org, **opts)
                 flows.append(flow)
                 loadLabels(fn, headers, labels, '{0}/../oxts'.format(opts['path']))
+        elif opts['mode'] == 'test':
+            sp = 30
+            sr = 30
+            im = cv2.pyrMeanShiftFiltering(im, sp, sr, maxLevel=1)
         elif opts['mode'] == 'all':
             h,w,_ = im.shape
             h = 200
@@ -142,7 +146,7 @@ def main():
     parser.add_argument('--mode', dest='mode', action='store', default='roadsign')
     parser.add_argument('--rseg', dest='rseg', nargs='?', default=3, type=int,
             help='Number of vertical segmentation in computing averaged flow')
-    parser.add_argument('--cseg', dest='cseg', nargs='?', default=4, type=int,
+    parser.add_argument('--cseg', dest='cseg', nargs='?', default=11, type=int,
             help='Number of horizontal segmentation in computing averaged flow')
     (opts, args) = parser.parse_known_args()
 

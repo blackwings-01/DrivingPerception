@@ -80,7 +80,7 @@ def plot():
     agmses  = np.array(pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "agmses.p") , "rb" )))
     agvars  = np.array(pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "agvars.p") , "rb" )))
 
-    fig = plt.figure(figsize=(7,5))
+    fig = plt.figure(figsize=(14,4))
     ax = fig.add_subplot(1,2,1, projection='3d')
     surf = ax.plot_surface(rsegs, csegs, vlmses,
             rstride=1,           # row step size
@@ -89,9 +89,10 @@ def plot():
             linewidth=1,         # wireframe line width
             antialiased=True
             )
-    ax.set_title('Mean Square Error')
-    ax.set_xlabel('# Vertical Tile')
-    ax.set_ylabel('# Horizontal Tile')
+    ax.set_title('Velocity Mean Square Error')
+    ax.set_xlabel('# Vertical Slides')
+    ax.set_ylabel('# Horizontal Slides')
+    ax.set_zlabel('km/h')
     fig.colorbar(surf, shrink=0.5, aspect=5)
 
     # ax = fig.add_subplot(1,2,2, projection='3d')
@@ -115,9 +116,10 @@ def plot():
             linewidth=1,         # wireframe line width
             antialiased=True
             )
-    ax.set_title('Mean Square Error')
-    ax.set_xlabel('# Vertical Tile')
-    ax.set_ylabel('# Horizontal Tile')
+    ax.set_title('Angular Velocity Mean Square Error')
+    ax.set_xlabel('# Vertical Slides')
+    ax.set_ylabel('# Horizontal Slides')
+    ax.set_zlabel('deg/s')
     fig.colorbar(surf, shrink=0.5, aspect=5)
 
     info = 'min vlmse:{0}'.format(vlmses.min())
@@ -125,7 +127,7 @@ def plot():
     for r,c in zip(rs,cs):
         info += ' at {0}'.format((rsegs[r,c],csegs[r,c]))
 
-    info += 'min agmse:{0}'.format(agmses.min())
+    info += ' min agmse:{0}'.format(agmses.min())
     rs, cs = np.where(agmses==agmses.min())
     for r,c in zip(rs,cs):
         info += ' at {0}'.format((rsegs[r,c],csegs[r,c]))

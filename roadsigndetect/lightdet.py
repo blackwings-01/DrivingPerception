@@ -26,39 +26,61 @@ def findLight(lc, cmks, img, **options):
     _, contours, hierarchy = cv2.findContours(msk,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     lightbounds = []
     for cnt in contours:
-        cvxhull = cv2.convexHull(cnt)
-        hull = np.squeeze(cvxhull)
-        if (len(hull.shape)==1): # convex hull is a point
+        (_, (rw, rh), _) = cv2.minAreaRect(cnt.copy())
+        if (abs(rw-rh) > rw*Tsq):
             continue
-        maxpxl = np.amax(hull, 0) 
-        minpxl = np.amin(hull, 0)
-        h, w = maxpxl - minpxl 
-        if (abs(w-h) > w*Tsq):
-            continue
+
+        cvxhull = cv2.convexHull(cnt.copy())
+        # hull = np.squeeze(cvxhull)
+        # if (len(hull.shape)==1): # convex hull is a point
+            # continue
+        # maxpxl = np.amax(hull, 0) 
+        # minpxl = np.amin(hull, 0)
+        # h, w = maxpxl - minpxl 
+
+        x,y,w,h = cv2.boundingRect(cnt)
+        minpxl = (x,y)
+        maxpxl = (x+w,y+h)
+
         minX, minY = minpxl
         maxX, maxY = maxpxl
         bounds = [minX, maxX, minY, maxY]
 
+        mg = 0.4
         cond = True
         if (lc=='r'):
-            # scolors = surroundColors(msk, bounds, [minX, maxX, minY+1*h, maxY+2*h], cmks)
-            # cond = cond and ('k' in scolors or 'y' in scolors)
-            scolors = surroundColors(msk, bounds, [minX, maxX, minY+1*h, maxY+3*h], cmks)
+            surbounds = [minX, maxX, int(minY+(1+1*mg)*h), int(maxY+(1+1*mg)*h)]
+            scolors = surroundColors(msk, bounds, surbounds, cmks, img)
+            cond = cond and ('k' in scolors or 'y' in scolors)
+            # print('v-1', scolors, bounds, surbounds)
+            surbounds = [minX, maxX, int(minY+(2+2*mg)*h), int(maxY+(2+2*mg)*h)]
+            scolors = surroundColors(msk, bounds, surbounds, cmks, img)
             cond = cond and 'k' in scolors
+            # print('v-2', scolors, bounds, surbounds)
+            # surbounds = [int(minX-(2+1*mg)*w), int(maxX-(2+1*mg)*h), minY, maxY]
+            # scolors = surroundColors(msk, bounds, surbounds, cmks, img)
+            # cond = cond and 'k' not in scolors
+            # # print('h-1', scolors, bounds, surbounds)
+            # surbounds = [int(minX+(1+1*mg)*w), int(maxX+(1+1*mg)*w), minY, maxY]
+            # scolors = surroundColors(msk, bounds, surbounds, cmks, img)
+            # cond = cond and 'k' not in scolors
+            # print('h+1', scolors, bounds, surbounds)
         elif (lc=='y'):
-            print('here')
-            scolors = surroundColors(msk, bounds, [minX, maxX, minY-2*h, maxY-1*h], cmks)
-            print('below', scolors)
+            surbounds = [minX, maxX, int(minY-(1+1*mg)*h), int(maxY-(1+1*mg)*h)]
+            scolors = surroundColors(msk, bounds, surbounds, cmks, img)
             cond = cond and 'k' in scolors or 'r' in scolors
-            scolors = surroundColors(msk, bounds, [minX, maxX, minY+1*h, maxY+2*h], cmks)
-            print('above', scolors)
+            # print('v+1', scolors, bounds, surbounds)
+            surbounds = [minX, maxX, int(minY+(1+1*mg)*h), int(maxY+(1+1*mg)*h)]
+            scolors = surroundColors(msk, bounds, surbounds, cmks, img)
             cond = cond and 'k' in scolors
+            # print('v-1', scolors, bounds, surbounds)
         elif (lc=='g'):
-            scolors = surroundColors(msk, bounds, [minX, maxX, minY-3*h, maxY-1*h], cmks)
+            surbounds = [minX, maxX, int(minY-(2+2*mg)*h), int(maxY-(1+1*mg)*h)]
+            scolors = surroundColors(msk, bounds, surbounds, cmks, img)
             cond = cond and 'k' in scolors
         if cond:
             if mode=='compare':
-                print('')
+                ()
                 # img = cv2.drawContours(img, [cvxhull], contourIdx=-1, color=rgb('g'), thickness=2)
             elif mode=='label':
                 img = cv2.drawContours(img, [cvxhull], contourIdx=-1, color=rgb('g'),
@@ -69,23 +91,39 @@ def findLight(lc, cmks, img, **options):
             lightbounds.append(bounds)
     return img, lightbounds
 
-def surroundColors(curmsk, bounds, surbounds, cmks):
+def surroundColors(curmsk, bounds, surbounds, cmks, img):
     region = getPatch(curmsk, bounds)
     colors = [] 
     for cn in cmks:
         msk = cmks[cn]
-        msk = cv2.morphologyEx(msk, cv2.MORPH_OPEN, region)
+        # msk = cv2.morphologyEx(msk, cv2.MORPH_OPEN, region)
         surround = getPatch(msk, surbounds)
+
+        # if cn=='y':
+            # print(surround.sum(), surround.size)
+            # print(colors)
+            # plt.subplot(1,3,1)
+            # region = getPatch(img, bounds)
+            # plt.imshow(cv2.cvtColor(region, cv2.COLOR_BGR2RGB))
+            # #plt.imshow(setPatch(curmsk, bounds, 1), cmap=plt.cm.binary)
+            # plt.subplot(1,3,2)
+            # plt.imshow(surround, cmap=plt.cm.binary)
+            # plt.subplot(1,3,3)
+            # surround = getPatch(img, surbounds)
+            # plt.imshow(cv2.cvtColor(surround, cv2.COLOR_BGR2RGB))
+            # plt.show()
+
         if (surround.sum() >= 0.4 * surround.size):
             colors.append(cn)
 
+    # if (curmsk==cmks['y']).all():
         # plt.subplot(2,1,1)
-        # plt.imshow(region, cmap=plt.cm.binary)
+        # region = getPatch(img, bounds)
+        # plt.imshow(cv2.cvtColor(region, cv2.COLOR_BGR2RGB))
         # #plt.imshow(setPatch(curmsk, bounds, 1), cmap=plt.cm.binary)
         # plt.subplot(2,1,2)
-        # plt.imshow(surround, cmap=plt.cm.binary)
-        # print(surround.sum(), surround.size)
-        # print(cn, colors)
+        # surround = getPatch(img, surbounds)
+        # plt.imshow(cv2.cvtColor(surround, cv2.COLOR_BGR2RGB))
         # plt.show()
 
     return colors

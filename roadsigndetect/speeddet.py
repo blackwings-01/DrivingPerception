@@ -118,7 +118,7 @@ def compFlow(prev, cur, **options):
 
 def predSpeed(im, prev, cur, labels, **options):
     if prev is None:
-        return im, (None, None)
+        return im, (None, None, None, None)
     parampath = SCRATCH_PATH
     if 'parampath' in options:
         parampath = options['parampath']
@@ -131,7 +131,9 @@ def predSpeed(im, prev, cur, labels, **options):
         coef_speed = np.array(map(float, coef_speed))
         coef_angle = paramfile.readline().split(',')
         coef_angle = np.array(map(float, coef_angle))
-    flow = compFlow(prev, cur, rseg=rseg, cseg=cseg)
+    options['rseg'] = rseg
+    options['cseg'] = cseg
+    flow = compFlow(prev, cur, **options)
     regr_speed = linear_model.LinearRegression()
     regr_speed.coef_ = coef_speed
     regr_speed.intercept_ = True 
@@ -198,8 +200,8 @@ def trainSpeed(flows, labels, rseg, cseg, **options):
     # write coefficients into a file
     with open('{0}/parameters.txt'.format(parampath), 'w') as paramfile:
         paramfile.write(','.join(map(str, [rseg, cseg])) + '\n')
-        paramfile.write(','.join(map(str, regr_speed.coef_)))
-        paramfile.write(','.join(map(str, regr_angle.coef_)))
+        paramfile.write(','.join(map(str, regr_speed.coef_)) + '\n')
+        paramfile.write(','.join(map(str, regr_angle.coef_)) + '\n')
 
     # The coefficients
     # print('Coefficients: \n', regr.coef_)

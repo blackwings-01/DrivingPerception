@@ -156,15 +156,19 @@ def trainSpeed(flows, labels, rseg, cseg, **options):
     X_train = []
     X_test = []
     for fl in flows:
-        X_train += fl[:-numTest]
-        X_test += fl[-numTest:]
+        # X_train += fl[:-numTest]
+        # X_test += fl[-numTest:]
+        X_train += fl
+        X_test += fl
     
     # Split the targets into training/testing sets
     y_train = []
     y_test = []
     for lb in labels:
-        y_train += lb['vf'][:-numTest]
-        y_test += lb['vf'][-numTest:]
+        # y_train += lb['vf'][:-numTest]
+        # y_test += lb['vf'][-numTest:]
+        y_train += lb['vf']
+        y_test += lb['vf']
     
     # Create linear regression object
     regr_speed = linear_model.LinearRegression(fit_intercept=True)
@@ -177,8 +181,11 @@ def trainSpeed(flows, labels, rseg, cseg, **options):
     y_train = []
     y_test = []
     for lb in labels:
-        y_train += lb['wf'][:-numTest]
-        y_test += lb['wf'][-numTest:]
+        # y_train += lb['wf'][:-numTest]
+        # y_test += lb['wf'][-numTest:]
+        y_train += lb['wf']
+        y_test += lb['wf']
+
     y_train = np.rad2deg(y_train)
     y_test = np.rad2deg(y_test)
     # Create linear regression object

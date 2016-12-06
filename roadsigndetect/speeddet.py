@@ -193,8 +193,8 @@ def trainSpeed(flows, labels, rseg, cseg, **options):
     # write coefficients into a file
     with open('{0}/parameters.txt'.format(parampath), 'w') as paramfile:
         paramfile.write(','.join(map(str, [rseg, cseg])) + '\n')
-        paramfile.write(','.join(map(str, regr_speed.coef_)))
-        paramfile.write(','.join(map(str, regr_angle.coef_)))
+        paramfile.write(','.join(map(str, regr_speed.coef_)) + '\n')
+        paramfile.write(','.join(map(str, regr_angle.coef_)) + '\n')
 
     # The coefficients
     # print('Coefficients: \n', regr.coef_)

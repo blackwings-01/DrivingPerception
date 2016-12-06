@@ -23,6 +23,7 @@ def exp(opts):
     csegs = csegs.astype(np.int32)
 
     inputs = []
+    flowMap = {}
     for i in range(nr):
         for j in range(nc):
             cp = opts.copy()
@@ -30,12 +31,22 @@ def exp(opts):
             cp['cseg'] = csegs[i,j]
             cp['i'] = i 
             cp['j'] = j 
+            cp['flowMap'] = flowMap
             inputs.append(cp)
 
-    pool = ThreadPool(opts['numthread'])
+    # execute first job to load flow into memory
     tic()
-    # results[0] = trainModel(inputs[0])
-    results = pool.map(trainModel, inputs, 1)
+    results = [trainModel(inputs[0])]
+    toc()
+    # tic()
+    # results += [trainModel(inputs[1])]
+    # toc()
+    # exit(0)
+
+    pool = ThreadPool(opts['numthread'])
+    print('Using {} threads working on {} parallel jobs ...'.format(opts['numthread'], len(inputs)))
+    tic()
+    results += pool.map(trainModel, inputs[1:], 1)
     # results = pool.map(foo, inputs, 1)
     pool.close()
     pool.join()
@@ -50,10 +61,10 @@ def exp(opts):
         i = inp['i']
         j = inp['j']
         vlmse, vlvar, agmse, agvar = res
-        vlmses[i,j] = mse
-        vlvars[i,j] = var
-        agmses[i,j] = mse
-        agvars[i,j] = var
+        vlmses[i,j] = vlmse
+        vlvars[i,j] = vlvar
+        agmses[i,j] = agmse
+        agvars[i,j] = agvar
     pickle.dump(rsegs , open('{0}/{1}.p'.format(SCRATCH_PATH, "rsegs"), "wb" ))
     pickle.dump(csegs , open('{0}/{1}.p'.format(SCRATCH_PATH, "csegs"), "wb" ))
     pickle.dump(vlmses  , open('{0}/{1}.p'.format(SCRATCH_PATH, "vlmses" ), "wb" ))

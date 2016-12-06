@@ -66,8 +66,12 @@ def getflow(prevgray, gray, **options):
     flow_path = '{0}{1}.flow'.format(SCRATCH_PATH, 
       '{0}/{1}'.format(path,fn).replace('/','_').replace('..',''))
     
-    if isfile(flow_path):
+    if 'flowMap' in options and flow_path in options['flowMap']:
+      flow = options['flowMap'][flow_path] 
+    elif isfile(flow_path):
       flow = pickle.load(open(flow_path, "rb" )) 
+      if 'flowMap' in options:
+        options['flowMap'][flow_path] = flow
     else:
       if iscv2():
         flow = cv2.calcOpticalFlowFarneback(prevgray, gray, 0.5, 3, 15, 3, 5, 1.2, 0)
@@ -123,16 +127,23 @@ def predSpeed(im, prev, cur, labels, **options):
         rseg, cseg = paramfile.readline().split(',')
         rseg = int(rseg)
         cseg = int(cseg)
-        coef = paramfile.readline().split(',')
-        coef = np.array(map(float, coef))
+        coef_speed = paramfile.readline().split(',')
+        coef_speed = np.array(map(float, coef_speed))
+        coef_angle = paramfile.readline().split(',')
+        coef_angle = np.array(map(float, coef_angle))
     flow = compFlow(prev, cur, rseg=rseg, cseg=cseg)
-    regr = linear_model.LinearRegression()
-    regr.coef_ = coef
-    regr.intercept_ = True 
+    regr_speed = linear_model.LinearRegression()
+    regr_speed.coef_ = coef_speed
+    regr_speed.intercept_ = True 
+    speed = regr_speed.predict([flow])[0]
     gtspeed = labels['vf'][-1]
-    speed = regr.predict([flow])[0]
+    regr_angle = linear_model.LinearRegression()
+    regr_angle.coef_ = coef_angle
+    regr_angle.intercept_ = True 
+    angle = regr_angle.predict([flow])[0]
+    gtangle = labels['wf'][-1]
 
-    return im, (speed, gtspeed) 
+    return im, (speed, gtspeed, angle, gtangle) 
 
 def trainSpeed(flows, labels, rseg, cseg, **options):
     pctTrain = 0.8
@@ -159,17 +170,23 @@ def trainSpeed(flows, labels, rseg, cseg, **options):
     regr_speed = linear_model.LinearRegression(fit_intercept=True)
     # Train the model using the training sets
     regr_speed.fit(X_train, y_train)
+    vlmse = np.mean((regr_speed.predict(X_test) - y_test) ** 2)
+    vlvar = regr_speed.score(X_test, y_test)
 
     # Split the targets into training/testing sets
     y_train = []
     y_test = []
     for lb in labels:
-        y_train += lb['yal'][:-numTest]
-        y_test += lb['yal'][-numTest:]
+        y_train += lb['wf'][:-numTest]
+        y_test += lb['wf'][-numTest:]
+    y_train = np.rad2deg(y_train)
+    y_test = np.rad2deg(y_test)
     # Create linear regression object
     regr_angle = linear_model.LinearRegression(fit_intercept=True)
     # Train the model using the training sets
     regr_angle.fit(X_train, y_train)
+    agmse = np.mean((regr_angle.predict(X_test) - y_test) ** 2)
+    agvar = regr_speed.score(X_test, y_test)
     
     # write coefficients into a file
     with open('{0}/parameters.txt'.format(parampath), 'w') as paramfile:
@@ -180,11 +197,7 @@ def trainSpeed(flows, labels, rseg, cseg, **options):
     # The coefficients
     # print('Coefficients: \n', regr.coef_)
     # The mean squared error
-    vlmse = np.mean((regr_speed.predict(X_test) - y_test) ** 2)
-    vlvar = regr_speed.score(X_test, y_test)
-    agmse = np.mean((regr_speed.predict(X_test) - y_test) ** 2)
-    agvar = regr_speed.score(X_test, y_test)
-    print("Speed mean squared error: %.2f, Speed variance score: %.2f, Angle mean squared error:%.2f, Angle variance score" % vlmse, vlvar, agmse, agvar)
+    print("Speed mean squared error: {:.2f}, Speed variance score: {:.2f}, Angle mean squared error:{:.2e}, Angle variance score: {:.2f}".format(vlmse, vlvar, agmse, agvar))
     return (vlmse, vlvar, agmse, agvar)
     
 # def main():

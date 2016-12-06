@@ -2,4 +2,5 @@
 driving/
 *.pyc
 *.swp
+*.flow
 building.jpg

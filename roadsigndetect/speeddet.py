@@ -11,6 +11,7 @@ import csv
 from multiprocessing.pool import ThreadPool
 from functools import partial
 from sklearn import datasets, linear_model
+import pickle
         
 def draw_flow(img, flow, step=16):
     h, w = img.shape[:2]
@@ -54,15 +55,25 @@ def detflow(frame, prev, cur, **options):
 def getflow(prevgray, gray, **options):
     rseg = options['rseg']
     cseg = options['cseg']
+    path = options['path']
+    fn = options['fn']
 
     # gray = np.round(np.random.rand(4,4,2)*3)
     h, w = gray.shape[:2]
     rstride = h / rseg
     cstride = w / cseg
-    if iscv2():
-      flow = cv2.calcOpticalFlowFarneback(prevgray, gray, 0.5, 3, 15, 3, 5, 1.2, 0)
-    elif iscv3():
-      flow = cv2.calcOpticalFlowFarneback(prevgray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+
+    flow_path = '{0}{1}.flow'.format(SCRATCH_PATH, 
+      '{0}/{1}'.format(path,fn).replace('/','_').replace('..',''))
+    
+    if isfile(flow_path):
+      flow = pickle.load(open(flow_path, "rb" )) 
+    else:
+      if iscv2():
+        flow = cv2.calcOpticalFlowFarneback(prevgray, gray, 0.5, 3, 15, 3, 5, 1.2, 0)
+      elif iscv3():
+        flow = cv2.calcOpticalFlowFarneback(prevgray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+      pickle.dump(flow , open(flow_path, "wb"))
 
     # flow = gray 
     avgflow = np.ndarray((rseg, cseg, 2), dtype=flow.dtype)

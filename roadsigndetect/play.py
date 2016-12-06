@@ -45,6 +45,8 @@ def play(flows, labels, **opts):
         im = cv2.imread(join(opts['path'], impath), cv2.IMREAD_COLOR)
         org = im.copy()
 
+        # flow_path = '{0}/{1}.flow'.format(SCRATCH_PATH, 
+                                          # '{0}/{1}'.format(opts['path'],fn).replace('/','_').replace('..',''))
         if opts['mode'] == 'roadsign':
             im = roadSignMatching(im, org) 
         elif opts['mode'] == 'loadmatch':
@@ -53,16 +55,11 @@ def play(flows, labels, **opts):
             im,icmp,_ = detlight(im, org, mode='compare') 
         elif opts['mode'] == 'flow':
             if porg is not None:
-                im = detflow(im, porg, org, flowmode='avgflow', rseg=opts['rseg'], cseg=opts['cseg'])
+                im = detflow(im, porg, org, flowmode='avgflow', rseg=opts['rseg'],
+                    cseg=opts['cseg'], fn=fn, path=opts['path'])
         elif opts['mode'] == 'trainspeed':
             if porg is not None:
-                flow_path = '{0}/{1}.flow'.format(SCRATCH_PATH, 
-                                                  '{0}/{1}'.format(opts['path'],fn).replace('\/','_'))
-                if isfile(flow_path):
-                    flow = pickle.load(open(flow_path, "rb" )) 
-                else:
-                    flow = compFlow(porg, org, rseg=opts['rseg'], cseg=opts['cseg'])
-                    pickle.dump(flow , open(flow_path), "wb" )
+                flow = compFlow(porg, org, rseg=opts['rseg'], cseg=opts['cseg'], fn=fn, path=opts['path'])
                 flows.append(flow)
                 loadLabels(fn, headers, labels, '{0}/../oxts'.format(opts['path']))
         elif opts['mode'] == 'all':

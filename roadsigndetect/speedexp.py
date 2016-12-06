@@ -21,8 +21,6 @@ def exp(opts):
     rsegs, csegs = np.meshgrid(rsegs, csegs, sparse=False, indexing='ij')
     rsegs = rsegs.astype(np.int32)
     csegs = csegs.astype(np.int32)
-    mses = np.empty_like(rsegs, dtype=np.float32)
-    vars = np.empty_like(rsegs, dtype=np.float32)
 
     inputs = []
     for i in range(nr):
@@ -42,32 +40,82 @@ def exp(opts):
     pool.close()
     pool.join()
     toc()
+
+    vlmses = np.empty_like(rsegs, dtype=np.float32)
+    vlvars = np.empty_like(rsegs, dtype=np.float32)
     for i, res in enumerate(results):
         inp = inputs[i]
         i = inp['i']
         j = inp['j']
-        mse, var = res
-        mses[i,j] = mse
-        vars[i,j] = var
+        vlmse, vlvar, agmse, agvar = res
+        vlmses[i,j] = mse
+        vlvars[i,j] = var
     pickle.dump(rsegs , open('{0}/{1}.p'.format(SCRATCH_PATH, "rsegs"), "wb" ))
     pickle.dump(csegs , open('{0}/{1}.p'.format(SCRATCH_PATH, "csegs"), "wb" ))
-    pickle.dump(mses  , open('{0}/{1}.p'.format(SCRATCH_PATH, "mses" ), "wb" ))
-    pickle.dump(vars  , open('{0}/{1}.p'.format(SCRATCH_PATH, "vars" ), "wb" ))
+    pickle.dump(vlmses  , open('{0}/{1}.p'.format(SCRATCH_PATH, "vlmses" ), "wb" ))
+    pickle.dump(vlvars  , open('{0}/{1}.p'.format(SCRATCH_PATH, "vlvars" ), "wb" ))
+    pickle.dump(agmses  , open('{0}/{1}.p'.format(SCRATCH_PATH, "agmses" ), "wb" ))
+    pickle.dump(agvars  , open('{0}/{1}.p'.format(SCRATCH_PATH, "agvars" ), "wb" ))
 
 def plot():
-    rsegs = pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "rsegs.p"), "rb" ))
-    csegs = pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "csegs.p"), "rb" ))
-    mses  = pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "mses.p") , "rb" ))
-    vars  = pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "vars.p") , "rb" ))
+    rsegs = np.array(pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "rsegs.p"), "rb" )))
+    csegs = np.array(pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "csegs.p"), "rb" )))
+    vlmses  = np.array(pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "vlmses.p") , "rb" )))
+    vlvars  = np.array(pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "vlvars.p") , "rb" )))
+    agmses  = np.array(pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "agmses.p") , "rb" )))
+    agvars  = np.array(pickle.load(open('{0}/{1}'.format(SCRATCH_PATH, "agvars.p") , "rb" )))
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(7,5))
     ax = fig.add_subplot(1,2,1, projection='3d')
-    #ax.plot_surface(rsegs, csegs, mses, color='b')
-    ax.plot_wireframe(rsegs, csegs, mses)
+    surf = ax.plot_surface(rsegs, csegs, vlmses,
+            rstride=1,           # row step size
+            cstride=1,           # column step size
+            cmap=plt.cm.summer,        # colour map
+            linewidth=1,         # wireframe line width
+            antialiased=True
+            )
+    ax.set_title('Mean Square Error')
+    ax.set_xlabel('# Vertical Tile')
+    ax.set_ylabel('# Horizontal Tile')
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+
+    # ax = fig.add_subplot(1,2,2, projection='3d')
+    # surf = ax.plot_surface(rsegs, csegs, vlvars,
+            # rstride=1,           # row step size
+            # cstride=1,           # column step size
+            # cmap=plt.cm.RdPu,        # colour map
+            # linewidth=1,         # wireframe line width
+            # antialiased=True
+            # )
+    # ax.set_title('Variance Score')
+    # ax.set_xlabel('Vertical Segmentation')
+    # ax.set_ylabel('Horizontal Segmentation')
+    # fig.colorbar(surf, shrink=0.5, aspect=5)
 
     ax = fig.add_subplot(1,2,2, projection='3d')
-    ax.plot_surface(rsegs, csegs, vars, rstride=4, cstride=4, color='b')
-    fig.set_size_inches(14, 6)
+    surf = ax.plot_surface(rsegs, csegs, agmses,
+            rstride=1,           # row step size
+            cstride=1,           # column step size
+            cmap=plt.cm.summer,        # colour map
+            linewidth=1,         # wireframe line width
+            antialiased=True
+            )
+    ax.set_title('Mean Square Error')
+    ax.set_xlabel('# Vertical Tile')
+    ax.set_ylabel('# Horizontal Tile')
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+
+    info = 'min vlmse:{0}'.format(vlmses.min())
+    rs, cs = np.where(vlmses==vlmses.min())
+    for r,c in zip(rs,cs):
+        info += ' at {0}'.format((rsegs[r,c],csegs[r,c]))
+
+    info += 'min agmse:{0}'.format(agmses.min())
+    rs, cs = np.where(agmses==agmses.min())
+    for r,c in zip(rs,cs):
+        info += ' at {0}'.format((rsegs[r,c],csegs[r,c]))
+
+    print(info)
     plt.show()
 
 def main():

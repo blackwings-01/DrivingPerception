@@ -101,10 +101,10 @@ def compFlow(prev, cur, **options):
     ang = np.angle(cplx)
     return mag.tolist() + ang.tolist()
 
-def predSpeed(im, prev, cur, icmp, labels, **options):
+def predSpeed(im, prev, cur, labels, **options):
     if prev is None:
-        return im, icmp
-    parampath = '.'
+        return im, (None, None)
+    parampath = SCRATCH_PATH
     if 'parampath' in options:
         parampath = options['parampath']
 
@@ -121,17 +121,11 @@ def predSpeed(im, prev, cur, icmp, labels, **options):
     gtspeed = labels['vf'][-1]
     speed = regr.predict([flow])[0]
 
-    text = 'Predicted Speed: {:02.2f}km/h. Ground Truth: {:02.2f}km/h'.format(speed, gtspeed)
-    h = icmp.shape[0]
-    coord = (20, h*1/4)
-    fontface = cv2.FONT_HERSHEY_SIMPLEX;
-    icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, 
-            fontScale=0.6, color=bgr('k'), thickness=2, lineType=8);
-    return im, icmp
+    return im, (speed, gtspeed) 
 
 def trainSpeed(flows, labels, rseg, cseg, **options):
     pctTrain = 0.8
-    parampath = '.'
+    parampath = SCRATCH_PATH
     if 'parampath' in options:
         parampath = options['parampath']
 
@@ -151,25 +145,36 @@ def trainSpeed(flows, labels, rseg, cseg, **options):
         y_test += lb['vf'][-numTest:]
     
     # Create linear regression object
-    regr = linear_model.LinearRegression(fit_intercept=True)
+    regr_speed = linear_model.LinearRegression(fit_intercept=True)
     # Train the model using the training sets
-    regr.fit(X_train, y_train)
+    regr_speed.fit(X_train, y_train)
+
+    # Split the targets into training/testing sets
+    y_train = []
+    y_test = []
+    for lb in labels:
+        y_train += lb['yal'][:-numTest]
+        y_test += lb['yal'][-numTest:]
+    # Create linear regression object
+    regr_angle = linear_model.LinearRegression(fit_intercept=True)
+    # Train the model using the training sets
+    regr_angle.fit(X_train, y_train)
     
     # write coefficients into a file
     with open('{0}/parameters.txt'.format(parampath), 'w') as paramfile:
         paramfile.write(','.join(map(str, [rseg, cseg])) + '\n')
-        paramfile.write(','.join(map(str, regr.coef_)))
+        paramfile.write(','.join(map(str, regr_speed.coef_)))
+        paramfile.write(','.join(map(str, regr_angle.coef_)))
 
     # The coefficients
     # print('Coefficients: \n', regr.coef_)
     # The mean squared error
-    mse = np.mean((regr.predict(X_test) - y_test) ** 2)
-    var = regr.score(X_test, y_test)
-    print("Mean squared error: %.2f" % mse)
-    # Explained variance score: 1 is perfect prediction
-    print('Variance score: %.2f' % var)
-
-    return (mse, var)
+    vlmse = np.mean((regr_speed.predict(X_test) - y_test) ** 2)
+    vlvar = regr_speed.score(X_test, y_test)
+    agmse = np.mean((regr_speed.predict(X_test) - y_test) ** 2)
+    agvar = regr_speed.score(X_test, y_test)
+    print("Speed mean squared error: %.2f, Speed variance score: %.2f, Angle mean squared error:%.2f, Angle variance score" % vlmse, vlvar, agmse, agvar)
+    return (vlmse, vlvar, agmse, agvar)
     
 # def main():
 

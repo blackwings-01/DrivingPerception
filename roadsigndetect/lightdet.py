@@ -121,7 +121,7 @@ def detlight(img, org, **options):
     Tk = 40
 
     setR = ((xr - xg) >= Tr) & ((xr - xb) >= Tr)
-    setY = ((xg - xb) >= Ty) & ((xr - xb) >= Ty)
+    setY = ((xg - xb) >= 90) & ((xr - xb) >= 130)
     setG = ((xg - xr) >= Tg) & ((xb - xr) >= Tg)
     setK = (xr < Tk) & (xg < Tk) & (xb < Tk)
     
@@ -157,22 +157,6 @@ def detlight(img, org, **options):
     img, ybounds = findLight('y', cmks, img, **options)
     img, gbounds = findLight('g', cmks, img, **options)
 
-    if (mode=='label'):
-        icmp = options['icmp']
-        lights = []
-        if len(rbounds)!=0:
-            lights.append('Red')
-        if len(ybounds)!=0:
-            lights.append('Yellow')
-        if len(gbounds)!=0:
-            lights.append('Green')
-        text = 'Current Lights: [{0}]'.format(','.join(lights))
-        h = icmp.shape[0]
-        coord = (20, h*2/4)
-        fontface = cv2.FONT_HERSHEY_SIMPLEX;
-        icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, 
-            fontScale=0.6, color=bgr('k'), thickness=2, lineType=8);
-        
     # circles = cv2.HoughCircles(img, method=cv2.HOUGH_GRADIENT, dp=1, minDist=h/8,
                                 # param1=100,param2=20,minRadius=0,maxRadius=150)
     
@@ -186,7 +170,20 @@ def detlight(img, org, **options):
     if mode=='compare':
         return img, org
     elif mode=='label':
-        return img, icmp 
+        # icmp = options['icmp']
+        lights = []
+        if len(rbounds)!=0:
+            lights.append('Red')
+        if len(ybounds)!=0:
+            lights.append('Yellow')
+        if len(gbounds)!=0:
+            lights.append('Green')
+        # h = icmp.shape[0]
+        # coord = (20, h*2/4)
+        # fontface = cv2.FONT_HERSHEY_SIMPLEX;
+        # icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, 
+            # fontScale=0.6, color=bgr('k'), thickness=2, lineType=8);
+        return img, lights 
 
 def main():
     usage = "Usage: match [options --mode]"

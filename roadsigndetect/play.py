@@ -62,9 +62,26 @@ def play(flows, labels, **opts):
             h,w,_ = im.shape
             h = 200
             icmp = np.ones((h,w,3), np.uint8) * 255
-            im, icmp = predSpeed(im, porg, org, icmp, labels, rseg=opts['rseg'], cseg=opts['cseg'])
-            im, icmp = detlight(im, org, mode='label', icmp=icmp) 
-            im, icmp = loadMatch(im, org, icmp, fn, matches) 
+            im, (speed, gtspeed) = predSpeed(im, porg, org, labels, rseg=opts['rseg'], cseg=opts['cseg'])
+            im, lights = detlight(im, org, mode='label') 
+            im, signs = loadMatch(im, org, fn, matches) 
+
+            info = []
+            info.append('Frame: {0}'.format(fn))
+            if speed is None:
+                info.append('Predicted speed: X km/h. ground truth: X km/h')
+            else:
+                info.append('Predicted speed: {:02.2f}km/h. ground truth: {:02.2f}km/h'.format(speed,
+                    gtspeed))
+            info.append('Current lights: [{0}]'.format(','.join(lights)))
+            info.append('Current signs: [{0}]'.format(','.join(signs)))
+
+            h = icmp.shape[0]
+            for i, text in enumerate(info):
+                coord = (20, h * (i+1)/(len(info)+1))
+                fontface = cv2.FONT_HERSHEY_SIMPLEX;
+                icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, fontScale=0.6, 
+                        color=bgr('k'), thickness=2, lineType=8);
             loadLabels(fn, headers, labels, '{0}/../oxts'.format(opts['path']))
         porg = org.copy()
 

@@ -113,7 +113,7 @@ def match(img1, img2, oimg2, **options):
     else:
         return matchdict
 
-def loadMatch(frame, org, icmp, fn, matches):
+def loadMatch(frame, org, fn, matches):
     if fn not in matches:
         return frame
     signs = []
@@ -132,13 +132,12 @@ def loadMatch(frame, org, icmp, fn, matches):
         if sn not in signs:
             signs.append(sn)
 
-    text = 'Current Signs: [{0}]'.format(','.join(signs))
-    h = icmp.shape[0]
-    coord = (20, h*3/4)
-    fontface = cv2.FONT_HERSHEY_SIMPLEX;
-    icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, 
-        fontScale=0.6, color=bgr('k'), thickness=2, lineType=8);
-    return frame, icmp
+    # h = icmp.shape[0]
+    # coord = (20, h*3/4)
+    # fontface = cv2.FONT_HERSHEY_SIMPLEX;
+    # icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, 
+        # fontScale=0.6, color=bgr('k'), thickness=2, lineType=8);
+    return frame, signs 
 
 def mcencode(mc):
     if len(mc)==0:

@@ -21,7 +21,7 @@ def findLight(lc, cmks, img, **options):
     if 'mode' in options:
         mode = options['mode']
 
-    Tsq = 0.25
+    Tsq = 0.15
     msk = cmks[lc]
     _, contours, hierarchy = cv2.findContours(msk,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     lightbounds = []
@@ -46,11 +46,13 @@ def findLight(lc, cmks, img, **options):
             scolors = surroundColors(msk, bounds, [minX, maxX, minY+1*h, maxY+3*h], cmks)
             cond = cond and 'k' in scolors
         elif (lc=='y'):
-            # scolors = surroundColors(msk, bounds, [minX, maxX, minY-2*h, maxY-1*h], cmks)
-            # cond = cond and 'k' in scolors or 'r' in scolors
-            # scolors = surroundColors(msk, bounds, [minX, maxX, minY+1*h, maxY+2*h], cmks)
-            # cond = cond and 'k' in scolors
-            cond = True
+            print('here')
+            scolors = surroundColors(msk, bounds, [minX, maxX, minY-2*h, maxY-1*h], cmks)
+            print('below', scolors)
+            cond = cond and 'k' in scolors or 'r' in scolors
+            scolors = surroundColors(msk, bounds, [minX, maxX, minY+1*h, maxY+2*h], cmks)
+            print('above', scolors)
+            cond = cond and 'k' in scolors
         elif (lc=='g'):
             scolors = surroundColors(msk, bounds, [minX, maxX, minY-3*h, maxY-1*h], cmks)
             cond = cond and 'k' in scolors
@@ -61,8 +63,8 @@ def findLight(lc, cmks, img, **options):
             elif mode=='label':
                 img = cv2.drawContours(img, [cvxhull], contourIdx=-1, color=rgb('g'),
                         thickness=1)
-                coord = (maxX + 4, (minY + maxY)/2)
-                img = drawLabel(img, labels[lc], coord, fontcolor=fontcolors[lc])  
+            coord = (maxX + 4, (minY + maxY)/2)
+            img = drawLabel(img, labels[lc], coord, fontcolor=fontcolors[lc])  
 
             lightbounds.append(bounds)
     return img, lightbounds

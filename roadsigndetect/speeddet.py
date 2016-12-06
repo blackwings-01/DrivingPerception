@@ -159,9 +159,13 @@ def trainSpeed(flows, labels, rseg, cseg, **options):
     # The coefficients
     # print('Coefficients: \n', regr.coef_)
     # The mean squared error
-    print("Mean squared error: %.2f" % np.mean((regr.predict(X_test) - y_test) ** 2))
+    mse = np.mean((regr.predict(X_test) - y_test) ** 2)
+    var = regr.score(X_test, y_test)
+    print("Mean squared error: %.2f" % mse)
     # Explained variance score: 1 is perfect prediction
-    print('Variance score: %.2f' % regr.score(X_test, y_test))
+    print('Variance score: %.2f' % var)
+
+    return (mse, var)
     
 # def main():
 

@@ -16,14 +16,14 @@ def roadSignMatching(frame, org):
     img = match(sign, frame, org, draw=True, drawKeyPoint=False, ratioTestPct=0.7, minMatchCnt=5)
     return img
 
-def play(opts, flows, labels):
-    files = [f for f in listdir(opts.path) if isfile(join(opts.path, f)) and f.endswith('.png')]
+def play(flows, labels, **opts):
+    files = [f for f in listdir(opts['path']) if isfile(join(opts['path'], f)) and f.endswith('.png')]
     files = sorted(files)
 
-    if opts.mode in ['loadmatch', 'all']:
-        matches = mcread(opts.path)
-    if opts.mode in ['trainspeed', 'all']:
-        headers = loadHeader('{0}/../oxts'.format(opts.path))
+    if opts['mode'] in ['loadmatch', 'all']:
+        matches = mcread(opts['path'])
+    if opts['mode'] in ['trainspeed', 'all']:
+        headers = loadHeader('{0}/../oxts'.format(opts['path']))
 
     img = None
     icmp = None
@@ -31,42 +31,42 @@ def play(opts, flows, labels):
     plt.figure(dpi=140)
     for i, impath in enumerate(files): 
         fn, ext = splitext(impath)
-        if i<opts.startframe:
+        if i<opts['startframe']:
             continue
-        if opts.endframe>0 and i>opts.endframe:
+        if opts['endframe']>0 and i>opts['endframe']:
             break
-        if opts.numframe>0 and i>(opts.startframe + opts.numframe):
+        if opts['numframe']>0 and i>(opts['startframe'] + opts['numframe']):
             break
 
         root, ext = splitext(impath)
-        im = cv2.imread(join(opts.path, impath), cv2.IMREAD_COLOR)
+        im = cv2.imread(join(opts['path'], impath), cv2.IMREAD_COLOR)
         org = im.copy()
 
-        if opts.mode == 'roadsign':
+        if opts['mode'] == 'roadsign':
             im = roadSignMatching(im, org) 
-        elif opts.mode == 'loadmatch':
+        elif opts['mode'] == 'loadmatch':
             im,_ = loadMatch(im, org, icmp, fn, matches) 
-        elif opts.mode == 'detlight':
+        elif opts['mode'] == 'detlight':
             im,icmp,_ = detlight(im, org, mode='compare') 
-        elif opts.mode == 'flow':
+        elif opts['mode'] == 'flow':
             if porg is not None:
-                im = detflow(im, porg, org, flowmode='avgflow', rseg=opts.rseg, cseg=opts.cseg)
-        elif opts.mode == 'trainspeed':
+                im = detflow(im, porg, org, flowmode='avgflow', rseg=opts['rseg'], cseg=opts['cseg'])
+        elif opts['mode'] == 'trainspeed':
             if porg is not None:
-                flow = compFlow(porg, org, rseg=opts.rseg, cseg=opts.cseg)
+                flow = compFlow(porg, org, rseg=opts['rseg'], cseg=opts['cseg'])
                 flows.append(flow)
-                loadLabels(fn, headers, labels, '{0}/../oxts'.format(opts.path))
-        elif opts.mode == 'all':
+                loadLabels(fn, headers, labels, '{0}/../oxts'.format(opts['path']))
+        elif opts['mode'] == 'all':
             h,w,_ = im.shape
             h = 200
             icmp = np.ones((h,w,3), np.uint8) * 255
-            im, icmp = predSpeed(im, porg, org, icmp, labels, rseg=opts.rseg, cseg=opts.cseg)
+            im, icmp = predSpeed(im, porg, org, icmp, labels, rseg=opts['rseg'], cseg=opts['cseg'])
             im, icmp = detlight(im, org, mode='label', icmp=icmp) 
             im, icmp = loadMatch(im, org, icmp, fn, matches) 
-            loadLabels(fn, headers, labels, '{0}/../oxts'.format(opts.path))
+            loadLabels(fn, headers, labels, '{0}/../oxts'.format(opts['path']))
         porg = org.copy()
 
-        if opts.mode in ['trainspeed']:
+        if opts['mode'] in ['trainspeed']:
             continue
         
         im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
@@ -87,14 +87,25 @@ def play(opts, flows, labels):
                 img.set_data(im)
             else:
                 img.set_data(im)
-        plt.pause(opts.delay)
+        plt.pause(opts['delay'])
         plt.draw()
+
+def trainModel(opts):
+    flows = []
+    labels = []
+    dirs = [join(KITTI_PATH, d) for d in listdir(KITTI_PATH) if isdir(join(KITTI_PATH, d))]
+    for vdir in dirs:
+        flows.append([])
+        labels.append(dict(vf=[], wf=[]))
+        opts['path'] = '{0}/data/'.format(vdir)
+        play(flows[-1], labels[-1], **opts)
+    return trainSpeed(flows, labels, opts['rseg'], opts['cseg'])
 
 def main():
     usage = "Usage: play [options --path]"
     parser = argparse.ArgumentParser(description='Visualize a sequence of images as video')
     parser.add_argument('--path', dest='path', action='store', 
-            default='{0}2011_09_26-3/data'.format(KITTI_PATH),
+            default='{0}2011_09_26-2/data'.format(KITTI_PATH),
             help='Specify path for the image files')
     parser.add_argument('--delay', dest='delay', nargs='?', default=0.05, type=float,
             help='Amount of delay between images')
@@ -112,17 +123,9 @@ def main():
     (opts, args) = parser.parse_known_args()
 
     if (opts.mode=='trainspeed'):
-        flows = []
-        labels = []
-        dirs = [join(KITTI_PATH, d) for d in listdir(KITTI_PATH) if isdir(join(KITTI_PATH, d))]
-        for vdir in dirs:
-            flows.append([])
-            labels.append(dict(vf=[], wf=[]))
-            opts.path = '{0}/data/'.format(vdir)
-            play(opts, flows[-1], labels[-1])
-        trainSpeed(flows, labels, opts.rseg, opts.cseg)
+        trainModel(vars(opts))
     else:
-        play(opts, [], dict(vf=[], wf=[]))
+        play([], dict(vf=[], wf=[]), **vars(opts))
 
 if __name__ == "__main__":
     main()

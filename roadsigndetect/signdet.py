@@ -55,7 +55,7 @@ def match(img1, img2, oimg2, **options):
         sift = cv2.SIFT()
     elif iscv3():
         sift = cv2.xfeatures2d.SIFT_create()
-    
+
     # find the keypoints and descriptors with SIFT
     kp1, des1 = sift.detectAndCompute(img1,None)
     kp2, des2 = sift.detectAndCompute(oimg2,None)
@@ -288,7 +288,10 @@ def main():
         img1 = cv2.imread(signs[opts.sign])
         img1 = cv2.GaussianBlur(img1,(5,5),0)
         img2 = cv2.imread(opts.path)
-        img3 = match(img1, img2, img2.copy(), draw=True, drawKeyPoint=False, ratioTestPct=0.85,
+        # sp = 5
+        # sr = 40
+        # img2 = cv2.pyrMeanShiftFiltering(img2, sp, sr, maxLevel=1)
+        img3 = match(img1, img2, img2.copy(), draw=True, drawKeyPoint=True, ratioTestPct=1,
                 minMatchCnt=4)
         img3 = cv2.cvtColor(img3, cv2.COLOR_BGR2RGB)
         plt.figure(dpi=140)

@@ -30,7 +30,7 @@ def findLight(lc, cmks, img, **options):
         if (abs(rw-rh) > rw*Tsq):
             continue
 
-        # cvxhull = cv2.convexHull(cnt.copy())
+        cvxhull = cv2.convexHull(cnt.copy())
         # hull = np.squeeze(cvxhull)
         # if (len(hull.shape)==1): # convex hull is a point
             # continue

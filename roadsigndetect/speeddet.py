@@ -157,45 +157,39 @@ def trainSpeed(flows, labels, rseg, cseg, **options):
     # Split the data into training/testing sets
     X_train = []
     X_test = []
-    for fl in flows:
+    vly_train = []
+    vly_test = []
+    agy_train = []
+    agy_test = []
+    for fl,lb in zip(flows, labels):
+        mk = np.random.randint(10, size=len(fl)) < pctTrain*10
         # X_train += fl[:-numTest]
         # X_test += fl[-numTest:]
-        X_train += fl
-        X_test += fl
-    
-    # Split the targets into training/testing sets
-    y_train = []
-    y_test = []
-    for lb in labels:
-        # y_train += lb['vf'][:-numTest]
-        # y_test += lb['vf'][-numTest:]
-        y_train += lb['vf']
-        y_test += lb['vf']
+        fl = np.array(fl)
+        X_train += fl[mk].tolist()
+        X_test += fl[~mk].tolist()
+        lb['vf'] = np.array(np.array(lb['vf']))
+        vly_train += lb['vf'][mk].tolist()
+        vly_test += lb['vf'][~mk].tolist()
+        lb['wf'] = np.array(np.array(lb['wf']))
+        agy_train += lb['wf'][mk].tolist()
+        agy_test += lb['wf'][~mk].tolist()
     
     # Create linear regression object
     regr_speed = linear_model.LinearRegression(fit_intercept=True)
     # Train the model using the training sets
-    regr_speed.fit(X_train, y_train)
-    vlmse = np.mean((regr_speed.predict(X_test) - y_test) ** 2)
-    vlvar = regr_speed.score(X_test, y_test)
+    regr_speed.fit(X_train, vly_train)
+    vlmse = np.mean((regr_speed.predict(X_test) - vly_test) ** 2)
+    vlvar = regr_speed.score(X_test, vly_test)
 
-    # Split the targets into training/testing sets
-    y_train = []
-    y_test = []
-    for lb in labels:
-        # y_train += lb['wf'][:-numTest]
-        # y_test += lb['wf'][-numTest:]
-        y_train += lb['wf']
-        y_test += lb['wf']
-
-    y_train = np.rad2deg(y_train)
-    y_test = np.rad2deg(y_test)
+    agy_train = np.rad2deg(agy_train)
+    agy_test = np.rad2deg(agy_test)
     # Create linear regression object
     regr_angle = linear_model.LinearRegression(fit_intercept=True)
     # Train the model using the training sets
-    regr_angle.fit(X_train, y_train)
-    agmse = np.mean((regr_angle.predict(X_test) - y_test) ** 2)
-    agvar = regr_speed.score(X_test, y_test)
+    regr_angle.fit(X_train, agy_train)
+    agmse = np.mean((regr_angle.predict(X_test) - agy_test) ** 2)
+    agvar = regr_speed.score(X_test, agy_test)
     
     # write coefficients into a file
     with open('{0}/parameters.txt'.format(parampath), 'w') as paramfile:

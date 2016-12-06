@@ -43,6 +43,8 @@ def exp(opts):
 
     vlmses = np.empty_like(rsegs, dtype=np.float32)
     vlvars = np.empty_like(rsegs, dtype=np.float32)
+    agmses = np.empty_like(rsegs, dtype=np.float32)
+    agvars = np.empty_like(rsegs, dtype=np.float32)
     for i, res in enumerate(results):
         inp = inputs[i]
         i = inp['i']
@@ -50,6 +52,8 @@ def exp(opts):
         vlmse, vlvar, agmse, agvar = res
         vlmses[i,j] = mse
         vlvars[i,j] = var
+        agmses[i,j] = mse
+        agvars[i,j] = var
     pickle.dump(rsegs , open('{0}/{1}.p'.format(SCRATCH_PATH, "rsegs"), "wb" ))
     pickle.dump(csegs , open('{0}/{1}.p'.format(SCRATCH_PATH, "csegs"), "wb" ))
     pickle.dump(vlmses  , open('{0}/{1}.p'.format(SCRATCH_PATH, "vlmses" ), "wb" ))

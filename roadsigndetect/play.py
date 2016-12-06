@@ -9,6 +9,7 @@ from util import *
 from signdet import *
 from speeddet import *
 from lightdet import *
+import pickle
 import time
 
 def roadSignMatching(frame, org):
@@ -55,7 +56,12 @@ def play(flows, labels, **opts):
                 im = detflow(im, porg, org, flowmode='avgflow', rseg=opts['rseg'], cseg=opts['cseg'])
         elif opts['mode'] == 'trainspeed':
             if porg is not None:
-                flow = compFlow(porg, org, rseg=opts['rseg'], cseg=opts['cseg'])
+                flow_path = '{0}/{1}.flow'.format(SCRATCH_PATH, '{0}/{1}'.format(opts['path'], fn).replace('\/','_')
+                if isfile(flow_path):
+                    flow = pickle.load(open(flow_path, "rb" )) 
+                else:
+                    flow = compFlow(porg, org, rseg=opts['rseg'], cseg=opts['cseg'])
+                    pickle.dump(flow , open(flow_path), "wb" ))
                 flows.append(flow)
                 loadLabels(fn, headers, labels, '{0}/../oxts'.format(opts['path']))
         elif opts['mode'] == 'all':

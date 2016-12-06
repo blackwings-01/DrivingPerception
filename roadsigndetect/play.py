@@ -45,8 +45,7 @@ def play(flows, labels, **opts):
         im = cv2.imread(join(opts['path'], impath), cv2.IMREAD_COLOR)
         org = im.copy()
 
-        # flow_path = '{0}/{1}.flow'.format(SCRATCH_PATH, 
-                                          # '{0}/{1}'.format(opts['path'],fn).replace('/','_').replace('..',''))
+        opts['fn'] = fn
         if opts['mode'] == 'roadsign':
             im = roadSignMatching(im, org) 
         elif opts['mode'] == 'loadmatch':
@@ -55,18 +54,18 @@ def play(flows, labels, **opts):
             im,icmp,_ = detlight(im, org, mode='compare') 
         elif opts['mode'] == 'flow':
             if porg is not None:
-                im = detflow(im, porg, org, flowmode='avgflow', rseg=opts['rseg'],
-                    cseg=opts['cseg'], fn=fn, path=opts['path'])
+                opts['flowmode'] = 'avgflow'
+                im = detflow(im, porg, org, **opts)
         elif opts['mode'] == 'trainspeed':
             if porg is not None:
-                flow = compFlow(porg, org, rseg=opts['rseg'], cseg=opts['cseg'], fn=fn, path=opts['path'])
+                flow = compFlow(porg, org, **opts)
                 flows.append(flow)
                 loadLabels(fn, headers, labels, '{0}/../oxts'.format(opts['path']))
         elif opts['mode'] == 'all':
             h,w,_ = im.shape
             h = 200
             icmp = np.ones((h,w,3), np.uint8) * 255
-            im, (speed, gtspeed) = predSpeed(im, porg, org, labels, rseg=opts['rseg'], cseg=opts['cseg'])
+            im, (speed, gtspeed, angle, gtangle) = predSpeed(im, porg, org, labels, **opts)
             im, lights = detlight(im, org, mode='label') 
             im, signs = loadMatch(im, org, fn, matches) 
 
@@ -74,9 +73,11 @@ def play(flows, labels, **opts):
             info.append('Frame: {0}'.format(fn))
             if speed is None:
                 info.append('Predicted speed: X km/h. ground truth: X km/h')
+                info.append('Predicted angular velocity: X deg/sec. ground truth: X deg/sec')
             else:
                 info.append('Predicted speed: {:02.2f}km/h. ground truth: {:02.2f}km/h'.format(speed,
                     gtspeed))
+                info.append('Predicted angular velocity: {:02.4f} deg/sec. ground truth: {:02.4f} deg/sec'.format(angle, gtangle))
             info.append('Current lights: [{0}]'.format(','.join(lights)))
             info.append('Current signs: [{0}]'.format(','.join(signs)))
 

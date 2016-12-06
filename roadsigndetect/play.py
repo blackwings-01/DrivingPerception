@@ -52,7 +52,7 @@ def play(flows, labels, **opts):
         elif opts['mode'] == 'loadmatch':
             im,_ = loadMatch(im, org, icmp, fn, matches) 
         elif opts['mode'] == 'detlight':
-            im,icmp,_ = detlight(im, org, mode='compare') 
+            im,icmp = detlight(im, org, mode='compare') 
         elif opts['mode'] == 'flow':
             if porg is not None:
                 im = detflow(im, porg, org, flowmode='avgflow', rseg=opts['rseg'],

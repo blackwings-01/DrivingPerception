@@ -125,9 +125,13 @@ def loadMatch(frame, org, fn, matches):
         # cnrs = mc['cnrs']
         # frame = cv2.polylines(img=frame, pts=[cnrs], isClosed=True, color=bgr('b'),
                 # thickness=3, lineType=cv2.LINE_AA)
+        if iscv3():
+            lineType = cv2.LINE_AA
+        elif iscv2():
+            lineType = cv2.CV_AA
         ctr = mc['ctr'] 
         frame = cv2.circle(img=frame, center=ctr, radius=2, color=bgr('r'), thickness=-1,
-                    lineType=cv2.LINE_AA)
+                    lineType=lineType)
         frame = drawLabel(img=frame, label=sn, coord=ctr)
         if sn not in signs:
             signs.append(sn)

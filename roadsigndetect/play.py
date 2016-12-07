@@ -89,7 +89,11 @@ def play(flows, labels, **opts):
             for i, text in enumerate(info):
                 coord = (20, h * (i+1)/(len(info)+1))
                 fontface = cv2.FONT_HERSHEY_SIMPLEX;
-                icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, fontScale=0.6, 
+                if iscv2():
+                    cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, fontScale=0.6, 
+                        color=bgr('k'), thickness=2, lineType=8);
+                elif iscv3():
+                    icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, fontScale=0.6, 
                         color=bgr('k'), thickness=2, lineType=8);
             loadLabels(fn, headers, labels, '{0}/../oxts'.format(opts['path']))
         porg = org.copy()

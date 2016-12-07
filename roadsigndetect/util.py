@@ -55,11 +55,21 @@ def drawLabel(img, label, coord, **options):
     blv = coord
     trv = tuple(np.int32(coord)+(np.int32(textSize)+np.array([2,2]))*np.array([1, -1]))
     overlay = img.copy()
-    overlay = cv2.rectangle(img=overlay, pt1=blv, pt2=trv, color=bgdcolor, 
-            thickness=cv2.FILLED);
-    img = cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0)
-    blv = tuple(np.array(blv) + np.array([2,-2]))
-    img = cv2.putText(img=img, text=label, org=blv, fontFace=fontface, 
+    if iscv2():
+        thickness = cv2.cv.CV_FILLED
+        cv2.rectangle(img=overlay, pt1=blv, pt2=trv, color=bgdcolor, 
+            thickness=thickness);
+        cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0, img)
+        blv = tuple(np.array(blv) + np.array([2,-2]))
+        cv2.putText(img=img, text=label, org=blv, fontFace=fontface, 
+            fontScale=scale, color=fontcolor, thickness=1, lineType=8);
+    elif iscv3():
+        thickness = cv2.FILLED
+        overlay = cv2.rectangle(img=overlay, pt1=blv, pt2=trv, color=bgdcolor, 
+            thickness=thickness);
+        img = cv2.addWeighted(overlay, alpha, img, 1 - alpha, 0)
+        blv = tuple(np.array(blv) + np.array([2,-2]))
+        img = cv2.putText(img=img, text=label, org=blv, fontFace=fontface, 
             fontScale=scale, color=fontcolor, thickness=thickness,
             lineType=8);
     return img

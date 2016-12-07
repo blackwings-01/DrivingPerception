@@ -130,7 +130,11 @@ def loadMatch(frame, org, fn, matches):
         elif iscv2():
             lineType = cv2.CV_AA
         ctr = mc['ctr'] 
-        frame = cv2.circle(img=frame, center=ctr, radius=2, color=bgr('r'), thickness=-1,
+        if iscv2():
+            cv2.circle(img=frame, center=ctr, radius=2, color=bgr('r'), thickness=-1,
+                    lineType=lineType)
+        elif iscv3():
+            frame = cv2.circle(img=frame, center=ctr, radius=2, color=bgr('r'), thickness=-1,
                     lineType=lineType)
         frame = drawLabel(img=frame, label=sn, coord=ctr)
         if sn not in signs:

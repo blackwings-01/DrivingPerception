@@ -143,7 +143,7 @@ def predSpeed(im, prev, cur, labels, **options):
     regr_angle.coef_ = coef_angle
     regr_angle.intercept_ = True 
     angle = regr_angle.predict([flow])[0]
-    gtangle = labels['wf'][-1]
+    gtangle = np.rad2deg(labels['wf'][-1])
 
     return im, (speed, gtspeed, angle, gtangle) 
 

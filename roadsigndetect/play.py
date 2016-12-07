@@ -71,7 +71,8 @@ def play(flows, labels, **opts):
             icmp = np.ones((h,w,3), np.uint8) * 255
             im, (speed, gtspeed, angle, gtangle) = predSpeed(im, porg, org, labels, **opts)
             im, lights = detlight(im, org, mode='label') 
-            im, signs = loadMatch(im, org, fn, matches) 
+            if opts['detsign']:
+                im, signs = loadMatch(im, org, fn, matches) 
 
             info = []
             info.append('Frame: {0}'.format(fn))
@@ -83,7 +84,8 @@ def play(flows, labels, **opts):
                     gtspeed))
                 info.append('Predicted angular velocity: {:02.4f} deg/sec. ground truth: {:02.4f} deg/sec'.format(angle, gtangle))
             info.append('Current lights: [{0}]'.format(','.join(lights)))
-            info.append('Current signs: [{0}]'.format(','.join(signs)))
+            if opts['detsign']:
+                info.append('Current signs: [{0}]'.format(','.join(signs)))
 
             h = icmp.shape[0]
             for i, text in enumerate(info):
@@ -152,6 +154,8 @@ def main():
             help='Number of vertical segmentation in computing averaged flow')
     parser.add_argument('--cseg', dest='cseg', nargs='?', default=11, type=int,
             help='Number of horizontal segmentation in computing averaged flow')
+    parser.add_argument('--no-sign', dest='detsign', action='store_false',default=True,
+        help='Disable sign detection')
     (opts, args) = parser.parse_known_args()
 
     if (opts.mode=='trainspeed'):

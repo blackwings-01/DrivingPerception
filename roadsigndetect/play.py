@@ -71,7 +71,8 @@ def play(flows, labels, **opts):
             icmp = np.ones((h,w,3), np.uint8) * 255
             im, (speed, gtspeed, angle, gtangle) = predSpeed(im, porg, org, labels, **opts)
             im, lights = detlight(im, org, mode='label') 
-            im, signs = loadMatch(im, org, fn, matches) 
+            if opts['detsign']:
+                im, signs = loadMatch(im, org, fn, matches) 
 
             info = []
             info.append('Frame: {0}'.format(fn))
@@ -83,13 +84,18 @@ def play(flows, labels, **opts):
                     gtspeed))
                 info.append('Predicted angular velocity: {:02.4f} deg/sec. ground truth: {:02.4f} deg/sec'.format(angle, gtangle))
             info.append('Current lights: [{0}]'.format(','.join(lights)))
-            info.append('Current signs: [{0}]'.format(','.join(signs)))
+            if opts['detsign']:
+                info.append('Current signs: [{0}]'.format(','.join(signs)))
 
             h = icmp.shape[0]
             for i, text in enumerate(info):
                 coord = (20, h * (i+1)/(len(info)+1))
                 fontface = cv2.FONT_HERSHEY_SIMPLEX;
-                icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, fontScale=0.6, 
+                if iscv2():
+                    cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, fontScale=0.6, 
+                        color=bgr('k'), thickness=2, lineType=8);
+                elif iscv3():
+                    icmp = cv2.putText(img=icmp, text=text, org=coord, fontFace=fontface, fontScale=0.6, 
                         color=bgr('k'), thickness=2, lineType=8);
             loadLabels(fn, headers, labels, '{0}/../oxts'.format(opts['path']))
         porg = org.copy()
@@ -148,6 +154,8 @@ def main():
             help='Number of vertical segmentation in computing averaged flow')
     parser.add_argument('--cseg', dest='cseg', nargs='?', default=11, type=int,
             help='Number of horizontal segmentation in computing averaged flow')
+    parser.add_argument('--no-sign', dest='detsign', action='store_false',default=True,
+        help='Disable sign detection')
     (opts, args) = parser.parse_known_args()
 
     if (opts.mode=='trainspeed'):

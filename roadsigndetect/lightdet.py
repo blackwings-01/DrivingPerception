@@ -86,7 +86,11 @@ def findLight(lc, cmks, img, **options):
                 ()
                 # img = cv2.drawContours(img, [cvxhull], contourIdx=-1, color=rgb('g'), thickness=2)
             elif mode=='label':
-                img = cv2.drawContours(img, [cvxhull], contourIdx=-1, color=rgb('g'),
+                if iscv2():
+                    cv2.drawContours(img, [cvxhull], contourIdx=-1, color=rgb('g'),
+                        thickness=1)
+                elif iscv3():
+                    img = cv2.drawContours(img, [cvxhull], contourIdx=-1, color=rgb('g'),
                         thickness=1)
             coord = (maxX + 4, (minY + maxY)/2)
             img = drawLabel(img, labels[lc], coord, fontcolor=fontcolors[lc])  

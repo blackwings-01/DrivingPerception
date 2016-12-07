@@ -89,7 +89,7 @@ def plot():
             linewidth=1,         # wireframe line width
             antialiased=True
             )
-    ax.set_title('Velocity Mean Square Error')
+    ax.set_title('Velocity Mean Squared Error')
     ax.set_xlabel('# Vertical Slides')
     ax.set_ylabel('# Horizontal Slides')
     ax.set_zlabel('km/h')
@@ -116,7 +116,7 @@ def plot():
             linewidth=1,         # wireframe line width
             antialiased=True
             )
-    ax.set_title('Angular Velocity Mean Square Error')
+    ax.set_title('Angular Velocity Mean Squared Error')
     ax.set_xlabel('# Vertical Slides')
     ax.set_ylabel('# Horizontal Slides')
     ax.set_zlabel('deg/s')

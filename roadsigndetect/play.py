@@ -130,7 +130,7 @@ def trainModel(opts):
     dirs = [join(KITTI_PATH, d) for d in listdir(KITTI_PATH) if isdir(join(KITTI_PATH, d))]
     for vdir in dirs:
         flows.append([])
-        labels.append(dict(vf=[], wf=[]))
+        labels.append(dict(vf=[], wu=[]))
         opts['path'] = '{0}/data/'.format(vdir)
         play(flows[-1], labels[-1], **opts)
     return trainSpeed(flows, labels, opts['rseg'], opts['cseg'])
@@ -161,7 +161,7 @@ def main():
     if (opts.mode=='trainspeed'):
         trainModel(vars(opts))
     else:
-        play([], dict(vf=[], wf=[]), **vars(opts))
+        play([], dict(vf=[], wu=[]), **vars(opts))
 
 if __name__ == "__main__":
     main()

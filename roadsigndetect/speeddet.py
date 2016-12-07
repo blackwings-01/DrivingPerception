@@ -143,7 +143,7 @@ def predSpeed(im, prev, cur, labels, **options):
     regr_angle.coef_ = coef_angle
     regr_angle.intercept_ = True 
     angle = regr_angle.predict([flow])[0]
-    gtangle = np.rad2deg(labels['wf'][-1])
+    gtangle = np.rad2deg(labels['wu'][-1])
 
     return im, (speed, gtspeed, angle, gtangle) 
 
@@ -171,9 +171,9 @@ def trainSpeed(flows, labels, rseg, cseg, **options):
         lb['vf'] = np.array(np.array(lb['vf']))
         vly_train += lb['vf'][mk].tolist()
         vly_test += lb['vf'][~mk].tolist()
-        lb['wf'] = np.array(np.array(lb['wf']))
-        agy_train += lb['wf'][mk].tolist()
-        agy_test += lb['wf'][~mk].tolist()
+        lb['wu'] = np.array(np.array(lb['wu']))
+        agy_train += lb['wu'][mk].tolist()
+        agy_test += lb['wu'][~mk].tolist()
     
     # Create linear regression object
     regr_speed = linear_model.LinearRegression(fit_intercept=True)

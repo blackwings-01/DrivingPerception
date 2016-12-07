@@ -23,7 +23,10 @@ def findLight(lc, cmks, img, **options):
 
     Tsq = 0.15
     msk = cmks[lc]
-    _, contours, hierarchy = cv2.findContours(msk,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    if iscv2():
+        contours, hierarchy = cv2.findContours(msk,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+    elif iscv3():
+        _, contours, hierarchy = cv2.findContours(msk,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     lightbounds = []
     for cnt in contours:
         (_, (rw, rh), _) = cv2.minAreaRect(cnt.copy())

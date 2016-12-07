@@ -14,7 +14,7 @@ def foo(opts):
 
 def exp(opts):
     opts['mode'] = 'trainspeed'
-    rsegs = range(1,8,1) 
+    rsegs = range(1,15,1) 
     csegs = range(1,24,1) 
     nr = len(rsegs)
     nc = len(csegs)

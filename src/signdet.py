@@ -29,6 +29,7 @@ def match(img1, img2, oimg2, **options):
     match_flag = cv2.DRAW_MATCHES_FLAGS_NOT_DRAW_SINGLE_POINTS
     minMatchCnt = 10
     ratioTestPct = 0.7
+    approxknn = True
 
     # options
     if 'draw' in options:
@@ -44,6 +45,8 @@ def match(img1, img2, oimg2, **options):
         minMatchCnt = options['minMatchCnt']
     if 'ratioTestPct' in options:
         ratioTestPct = options['ratioTestPct']
+    if 'approxknn' in options:
+        approxknn = options['approxknn']
 
     draw_params = dict(matchColor = bgr(matchColor),
                        singlePointColor = bgr(singlePointColor),
@@ -65,10 +68,13 @@ def match(img1, img2, oimg2, **options):
     index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees = 5)
     search_params = dict(checks=50)   # or pass empty dictionary
     
-    flann = cv2.FlannBasedMatcher(index_params,search_params)
-    
-    matches = flann.knnMatch(des1,des2,k=2)
-    
+    if approxknn:
+        flann = cv2.FlannBasedMatcher(index_params,search_params)
+        matches = flann.knnMatch(des1,des2,k=2)
+    else:
+        bf = cv2.BFMatcher()
+        matches = bf.knnMatch(des1,des2, k=2)
+
     # store all the good matches as per Lowe's ratio test.
     good = []
     for m,n in matches:
@@ -184,13 +190,18 @@ def mcwrite(matches, matchPath, **options):
             writer.writerow(row)
 
 def mcread(matchPath):
+    signs = []
+    for f in listdir(SIGN_PATH):
+        fn, ext = splitext(f)
+        if isfile(join(SIGN_PATH, f)) and ext=='.png':
+            signs.append(fn)
     matches = {}
     with open('{0}/matches.csv'.format(matchPath), 'r') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             fn = row['Frame']
             matches[fn] = {}
-            for sn in row:
+            for sn in signs:
                 if sn!='Frame':
                     matches[fn][sn] = mcdecode(row[sn])
     return matches
@@ -274,17 +285,19 @@ def main():
     parser.add_argument('--num-frame', dest='numframe', nargs='?', default=-1, type=int,
             help='Number of frame to play, -1 for all frames')
     parser.add_argument('--mode', dest='mode', action='store', default='matchall')
-    parser.add_argument('--ratioTestPct', dest='ratioTestPct', nargs='?', default=0.8, type=float,
+    parser.add_argument('--ratioTestPct', dest='ratioTestPct', nargs='?', default=0.7, type=float,
             help='Ratio test percentage')
-    parser.add_argument('--blurSize', dest='blurSize', nargs='?', default=9, type=int,
+    parser.add_argument('--blurSize', dest='blurSize', nargs='?', default=5, type=int,
             help='blurSize for gaussian blur')
-    parser.add_argument('--minMatchCnt', dest='minMatchCnt', nargs='?', default=4, type=int,
+    parser.add_argument('--minMatchCnt', dest='minMatchCnt', nargs='?', default=5, type=int,
             help='Minimum match count')
     parser.add_argument('--numthread', dest='numthread', nargs='?', default=8, type=int,
             help='Number of thread to match roadsigns')
     parser.add_argument('--path', dest='path', action='store',
             default='{0}/2011_09_26-1/data/0000000026.png'.format(KITTI_PATH))
     parser.add_argument('--sign', dest='sign', action='store', default='no_entry')
+    parser.add_argument('--exactknn', dest='approxknn', action='store_false',default=True,
+        help='Use exact knn rather than exact knn for matching')
     (opts, args) = parser.parse_known_args()
 
     if (opts.mode == 'matchall'):
@@ -294,16 +307,65 @@ def main():
         matchall(opts.path, **options)
     elif (opts.mode == 'matchone'):
         img1 = cv2.imread(signs[opts.sign])
-        img1 = cv2.GaussianBlur(img1,(5,5),0)
+        img1 = cv2.GaussianBlur(img1,(opts.blurSize,opts.blurSize),0)
         img2 = cv2.imread(opts.path)
         # sp = 5
         # sr = 40
         # img2 = cv2.pyrMeanShiftFiltering(img2, sp, sr, maxLevel=1)
-        img3 = match(img1, img2, img2.copy(), draw=True, drawKeyPoint=True, ratioTestPct=1,
-                minMatchCnt=4)
+        img3 = match(img1, img2, img2.copy(), draw=True, drawKeyPoint=True,
+                ratioTestPct=opts.ratioTestPct,
+                minMatchCnt=opts.minMatchCnt, approxknn=opts.approxknn)
         img3 = cv2.cvtColor(img3, cv2.COLOR_BGR2RGB)
         plt.figure(dpi=140)
         plt.imshow(img3)
+        plt.show()
+    elif (opts.mode == 'knncomp'):
+        img1 = cv2.imread(signs[opts.sign])
+        img1 = cv2.GaussianBlur(img1,(opts.blurSize,opts.blurSize),0)
+        img2 = cv2.imread(opts.path)
+        img3 = match(img1.copy(), img2.copy(), img2.copy(), draw=True, drawKeyPoint=True,
+                ratioTestPct=opts.ratioTestPct,
+                minMatchCnt=opts.minMatchCnt, approxknn=False)
+        img4 = match(img1.copy(), img2.copy(), img2.copy(), draw=True, drawKeyPoint=True,
+                ratioTestPct=opts.ratioTestPct,
+                minMatchCnt=opts.minMatchCnt, approxknn=True)
+        img3 = cv2.cvtColor(img3, cv2.COLOR_BGR2RGB)
+        img4 = cv2.cvtColor(img4, cv2.COLOR_BGR2RGB)
+        fig = plt.figure(figsize=(14,8))
+        plt.subplot(2,1,1)
+        plt.imshow(img3)
+        plt.title('Brute-Force KNN matching', fontsize=20)
+        plt.axis('off')
+        plt.subplot(2,1,2)
+        plt.imshow(img4)
+        plt.title('FLANN based matching', fontsize=20)
+        plt.axis('off')
+        plt.tight_layout(pad=0.1, h_pad=0.3)
+        plt.savefig('{0}/knncomp.png'.format(SCRATCH_PATH), dpi=fig.dpi)
+        plt.show()
+    elif (opts.mode == 'illumination'):
+        img1 = cv2.imread(signs[opts.sign])
+        img1 = cv2.GaussianBlur(img1,(opts.blurSize,opts.blurSize),0)
+        img2 = cv2.imread('')
+        img3 = match(img1.copy(), img2.copy(), img2.copy(), draw=True, drawKeyPoint=True,
+                ratioTestPct=opts.ratioTestPct,
+                minMatchCnt=opts.minMatchCnt, approxknn=False)
+        img4 = match(img1.copy(), img2.copy(), img2.copy(), draw=True, drawKeyPoint=True,
+                ratioTestPct=opts.ratioTestPct,
+                minMatchCnt=opts.minMatchCnt, approxknn=True)
+        img3 = cv2.cvtColor(img3, cv2.COLOR_BGR2RGB)
+        img4 = cv2.cvtColor(img4, cv2.COLOR_BGR2RGB)
+        fig = plt.figure(figsize=(14,8))
+        plt.subplot(2,1,1)
+        plt.imshow(img3)
+        plt.title('Brute-Force KNN matching', fontsize=20)
+        plt.axis('off')
+        plt.subplot(2,1,2)
+        plt.imshow(img4)
+        plt.title('FLANN based matching', fontsize=20)
+        plt.axis('off')
+        plt.tight_layout(pad=0.1, h_pad=0.3)
+        plt.savefig('{0}/knncomp.png'.format(SCRATCH_PATH), dpi=fig.dpi)
         plt.show()
 
 if __name__ == "__main__":

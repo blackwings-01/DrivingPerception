@@ -90,8 +90,8 @@ def plot():
             antialiased=True
             )
     ax.set_title('Velocity Mean Squared Error')
-    ax.set_xlabel('# Vertical Slides')
-    ax.set_ylabel('# Horizontal Slides')
+    ax.set_xlabel('# Vertical Slices')
+    ax.set_ylabel('# Horizontal Slices')
     ax.set_zlabel('km/h')
     fig.colorbar(surf, shrink=0.5, aspect=5)
 
@@ -117,8 +117,8 @@ def plot():
             antialiased=True
             )
     ax.set_title('Angular Velocity Mean Squared Error')
-    ax.set_xlabel('# Vertical Slides')
-    ax.set_ylabel('# Horizontal Slides')
+    ax.set_xlabel('# Vertical Slices')
+    ax.set_ylabel('# Horizontal Slices')
     ax.set_zlabel('deg/s')
     fig.colorbar(surf, shrink=0.5, aspect=5)
 

@@ -12,8 +12,8 @@ from lightdet import *
 import pickle
 import time
 
-def roadSignMatching(frame, org):
-    sign = cv2.imread(signs['keep_right'])
+def roadSignMatching(frame, org, sn):
+    sign = cv2.imread(signs[sn])
     sign = cv2.GaussianBlur(sign,(5,5),0)
     img = match(sign, frame, org, draw=True, drawKeyPoint=False, ratioTestPct=0.7, minMatchCnt=5)
     return img
@@ -47,7 +47,7 @@ def play(flows, labels, **opts):
 
         opts['fn'] = fn
         if opts['mode'] == 'roadsign':
-            im = roadSignMatching(im, org) 
+            im = roadSignMatching(im, org, opts['sign']) 
         elif opts['mode'] == 'loadmatch':
             im,_ = loadMatch(im, org, icmp, fn, matches) 
         elif opts['mode'] == 'detlight':
@@ -77,12 +77,23 @@ def play(flows, labels, **opts):
             info = []
             info.append('Frame: {0}'.format(fn))
             if speed is None:
-                info.append('Predicted speed: X km/h. ground truth: X km/h')
+                info.append('Predicted speed: X m/s. ground truth: X m/s')
                 info.append('Predicted angular velocity: X deg/sec. ground truth: X deg/sec')
+                info.append('Current state: X')
             else:
-                info.append('Predicted speed: {:02.2f}km/h. ground truth: {:02.2f}km/h'.format(speed,
+                info.append('Predicted speed: {:02.2f}m/s. ground truth: {:02.2f}m/s'.format(speed,
                     gtspeed))
                 info.append('Predicted angular velocity: {:02.4f} deg/sec. ground truth: {:02.4f} deg/sec'.format(angle, gtangle))
+                if (speed > 2):
+                    if abs(angle)<2:
+                        state = 'Forward'
+                    elif angle < 0:
+                        state = 'Turning Right'
+                    else:
+                        state = 'Turning Left'
+                else:
+                    state = 'Still'
+                info.append('Current state: {0}'.format(state))
             info.append('Current lights: [{0}]'.format(','.join(lights)))
             if opts['detsign']:
                 info.append('Current signs: [{0}]'.format(','.join(signs)))
@@ -141,7 +152,7 @@ def main():
     parser.add_argument('--path', dest='path', action='store', 
             default='{0}2011_09_26-2/data'.format(KITTI_PATH),
             help='Specify path for the image files')
-    parser.add_argument('--delay', dest='delay', nargs='?', default=0.05, type=float,
+    parser.add_argument('--delay', dest='delay', nargs='?', default=0.01, type=float,
             help='Amount of delay between images')
     parser.add_argument('--start-frame', dest='startframe', nargs='?', default=0, type=int,
             help='Starting frame to play')
@@ -156,6 +167,7 @@ def main():
             help='Number of horizontal segmentation in computing averaged flow')
     parser.add_argument('--no-sign', dest='detsign', action='store_false',default=True,
         help='Disable sign detection')
+    parser.add_argument('--sign', dest='sign', action='store', default='no_entry')
     (opts, args) = parser.parse_known_args()
 
     if (opts.mode=='trainspeed'):

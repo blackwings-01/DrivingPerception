@@ -60,7 +60,7 @@ Then choose any of the following demos to run:
   ```
   python play.py --mode flow --demo <#>
   ```
-4. Visualization of roadsign of one specific sign with matching explicitly drew (Unlike mode all, this is computed on the fly. Notice this doesn't work on corn because SIFT is not installed. If you have OpenCV with SIFT installed feel free to run this)
+4. Visualization of roadsign of one specific sign with matching explicitly drew (Unlike mode all, this is computed on the fly. **Notice this doesn't work on corn because SIFT is not installed**. If you have OpenCV with SIFT installed feel free to run this)
 
   ```
   python play.py --mode roadsign --demo <#> --sign <signname>

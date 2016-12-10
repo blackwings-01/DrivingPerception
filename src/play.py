@@ -149,8 +149,9 @@ def trainModel(opts):
 def main():
     usage = "Usage: play [options --path]"
     parser = argparse.ArgumentParser(description='Visualize a sequence of images as video')
-    parser.add_argument('--path', dest='path', action='store', 
-            default='{0}2011_09_26-2/data'.format(KITTI_PATH),
+    parser.add_argument('--demo', dest='demo', nargs='?', default=1, type=int,
+            help='Demo number to run. If --path is set, this option is ignored')
+    parser.add_argument('--path', dest='path', action='store', default='',
             help='Specify path for the image files')
     parser.add_argument('--delay', dest='delay', nargs='?', default=0.01, type=float,
             help='Amount of delay between images')
@@ -165,10 +166,13 @@ def main():
             help='Number of vertical segmentation in computing averaged flow')
     parser.add_argument('--cseg', dest='cseg', nargs='?', default=11, type=int,
             help='Number of horizontal segmentation in computing averaged flow')
-    parser.add_argument('--no-sign', dest='detsign', action='store_false',default=True,
+    parser.add_argument('--no-sign', dest='pedestrian_crossing_left', action='store_false',default=True,
         help='Disable sign detection')
     parser.add_argument('--sign', dest='sign', action='store', default='no_entry')
     (opts, args) = parser.parse_known_args()
+
+    if (opts.path==''): 
+        opts.path = '{0}2011_09_26-{1}/data'.format(KITTI_PATH, opts.demo)
 
     if (opts.mode=='trainspeed'):
         trainModel(vars(opts))

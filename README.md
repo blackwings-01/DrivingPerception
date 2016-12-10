@@ -82,6 +82,11 @@ Then choose any of the following demos to run:
     `pedestrian_crossing_right`
     `speed_limit_30`
     `stop_sign`
+5. Picked interesting frames from 3 videos
+  
+  ```
+  ./demo.sh
+  ```
 
 Additional options in play.py:
 `--path <string>` directory to the frame path. If set `--demo` is ignored

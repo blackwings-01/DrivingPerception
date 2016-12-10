@@ -13,7 +13,7 @@ optimum result for velocity.
 
 The project was written in python using 
 + `OpenCV` for image processing
-+ `scrikit-learn` (`sklearn`) for the linear model, which also depends on `scipy`
++ `scrikit-learn` (`sklearn`) for the linear regression model in velocity prediction, which also depends on `scipy`
 + `matplotlib` for visualization
 + `numpy` for matrix operation
 
@@ -28,7 +28,7 @@ works on macOS Sierra, which is of version 3.1.0. Nonetheless, the demo should a
 on OpenCV 2.4 for other Mac operating system but it is not tested. 
 
 The dataset is also uploaded in the repository. However, given the repository size, cloning
-is mostly likely to fail due to connection time out on corn machines. So please download the
+is mostly likely to fail due to connection time out. So please download the
 zip file instead from [https://github.com/blackwings-01/DrivingPerception/archive/master.zip].
 
 Demo Videos:
@@ -85,7 +85,7 @@ Then choose any of the following demos to run:
 
 Additional options in play.py:
 `--path <string>` directory to the frame path. If set `--demo` is ignored
-`--delay <float>` amount of delay to add between two frames. Do not set to 0
+`--delay <float>` amount of delay to add between two frames to adjust video speed. Do not set to 0
 `--start-frame <int>` starting frame for playing. Default 0
 `--end-frame <int>` ending frame for playing. Default -1 for last frame
 `--num-frame <init>` number of frame for playing. Default -1 for all frames. If both `--end-frame` and `--num-frame` are set, whichever ends first will stop the playing

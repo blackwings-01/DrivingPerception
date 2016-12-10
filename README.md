@@ -36,7 +36,12 @@ Demo Videos:
 2011_09_26-2
 2011_09_26-3
 
-There are set of demos that combines road sign, traffic light and speed together and demos for each individual component. To get start, first
+
+There are set of demos that combines road sign, traffic light and speed together and demos for each individual component. 
+A subset of the demos are recorded and uploaded in case installation failed or playing on corn
+is too slow. You can find them under `recorded_demo/`
+
+To get start, first
 ```
 wget https://github.com/blackwings-01/DrivingPerception/archive/master.zip
 unzip master.zip
@@ -60,7 +65,7 @@ Then choose any of the following demos to run:
   ```
   python play.py --mode flow --demo <#>
   ```
-4. Visualization of roadsign of one specific sign with matching explicitly drew (Unlike mode all, this is computed on the fly. **Notice this doesn't work on corn because SIFT is not installed**. If you have OpenCV with SIFT installed feel free to run this)
+4. Visualization of roadsign of one specific sign with matching explicitly drew (Unlike mode all, this is computed on the fly)
 
   ```
   python play.py --mode roadsign --demo <#> --sign <signname>
@@ -95,5 +100,4 @@ Additional options in play.py:
 `--end-frame <int>` ending frame for playing. Default -1 for last frame
 `--num-frame <init>` number of frame for playing. Default -1 for all frames. If both `--end-frame` and `--num-frame` are set, whichever ends first will stop the playing
 `--no-sign` Disable sign detection.
-
 

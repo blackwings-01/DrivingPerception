@@ -168,7 +168,7 @@ def main():
             help='Number of horizontal segmentation in computing averaged flow')
     parser.add_argument('--no-sign', dest='detsign', action='store_false',default=True,
         help='Disable sign detection')
-    parser.add_argument('--sign', dest='sign', action='store', default='no_entry')
+    parser.add_argument('--sign', dest='sign', action='store', default='pedestrian_crossing_left')
     (opts, args) = parser.parse_known_args()
 
     if (opts.path==''): 

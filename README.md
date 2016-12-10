@@ -39,7 +39,8 @@ Demo Videos:
 
 There are set of demos that combines road sign, traffic light and speed together and demos for each individual component. 
 A subset of the demos are recorded and uploaded in case installation failed or playing on corn
-is too slow. You can find them under `recorded_demo/`
+is too slow. You can download them from
+[https://drive.google.com/drive/folders/0BzFuAterjDpFV3p6d3VObHVheGc?usp=sharing]
 
 To get start, first
 ```

@@ -19,8 +19,8 @@ The project was written in python using
 
 All required libraries are installed on Stanford corn machines. There is a `setup.sh` 
 script to install/upgrade all required python libraries for user only (does not require
-`sudo`). *NOTICE* the `scripy` library required by `sklearn` is outdated on corn. So 
-importing `linear_module` from `sklearn` directly will fail. So *PLEASE* run the `setup.sh` 
+`sudo`). **NOTICE** the `scripy` library required by `sklearn` is outdated on corn. So 
+importing `linear_module` from `sklearn` directly will fail. So **PLEASE** run the `setup.sh` 
 script to upgrade the library before running the demo. Although developed in OpenCV 3.1.0 
 on Mac, I also modified the script to support OpenCV 2.4 and tested on Linux. Due to 
 depended module by OpenCV is missing in latest macOS Sierra, only master branch of OpenCV

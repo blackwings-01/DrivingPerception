@@ -166,7 +166,7 @@ def main():
             help='Number of vertical segmentation in computing averaged flow')
     parser.add_argument('--cseg', dest='cseg', nargs='?', default=11, type=int,
             help='Number of horizontal segmentation in computing averaged flow')
-    parser.add_argument('--no-sign', dest='pedestrian_crossing_left', action='store_false',default=True,
+    parser.add_argument('--no-sign', dest='detsign', action='store_false',default=True,
         help='Disable sign detection')
     parser.add_argument('--sign', dest='sign', action='store', default='no_entry')
     (opts, args) = parser.parse_known_args()
